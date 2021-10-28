@@ -1,0 +1,106 @@
+<?xml version="1.0"?>
+<odoo>
+
+    <record id="cds_request_view_form" model="ir.ui.view">
+        <field name="name">cds.request.form</field>
+        <field name="model">cds.request</field>
+        <field name="arch" type="xml">
+            <form string="Заявка">
+                <header>
+                    <field name="state" widget="statusbar" options="{'clickable': '1', 'fold_field': 'fold'}"></field>   
+                </header>
+                <sheet>
+                    <group>
+                        <group>
+                            <field name="name"/>
+                            <field name="date"/>
+                            <field name="mode"/>
+                        </group>
+                        <group>
+                            <field name="date_schedule"/>
+                            <field name="ready_hours"/>
+                            <field name="ready_minutes"/>
+                        </group>
+                    </group>
+                    <group>
+                        <field name="date_work_start"/>
+                        <field name="date_work_end"/>
+                        <field name="energy_complex_id"/>
+                        <field name="location_id"/>
+                        <field name="object_id"/>
+                        <field name="work_name"/>
+                        <field name="description_mode"/>
+                        <field name="total_load_gpes"/>
+                        <field name="restrictions"/>
+                        <field name="oil_losses"/>
+                        <field name="date_hand_over"/>
+                        <field name="date_turn_off"/>
+                        <field name="date_turn_on"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+    
+    <record id="cds_request_action" model="ir.actions.act_window">
+        <field name="name">Заявки</field>
+        <field name="res_model">cds.request</field>
+        <field name="view_mode">tree,form</field>
+        <field name="help" type="html">
+          <p>
+             Создайте новую запись
+          </p>
+        </field>
+    </record>
+
+
+    <!-- <record id="cds_request_state_action" model="ir.actions.act_window">
+        <field name="name">Статусы</field>
+        <field name="res_model">cds.request_state</field>
+        <field name="view_mode">tree,form</field>
+        <field name="help" type="html">
+          <p>
+             Создайте новую запись
+          </p>
+        </field>
+    </record> -->
+
+    <!-- <record id="base_multi_sync_line_action" model="ir.actions.act_window">
+        <field name="name">Синхронизированные объекты</field>
+        <field name="res_model">base.multi_sync_line</field>
+        <field name="view_mode">tree,form</field>
+        <field name="help" type="html">
+          <p>
+             Создайте новую запись
+          </p>
+        </field>
+    </record>
+
+
+
+    <record id="base_multi_sync_log_view_tree" model="ir.ui.view">
+        <field name="name">base.multi_sync_log.tree</field>
+        <field name="model">base.multi_sync_log</field>
+        <field name="arch" type="xml">
+            <tree>
+                <field name="date"/>
+                <field name="name"/>
+                <field name="server_id"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="base_multi_sync_log_action" model="ir.actions.act_window">
+        <field name="name">Результаты синхронизации</field>
+        <field name="res_model">base.multi_sync_log</field>
+        <field name="view_mode">tree,form</field>
+        <field name="help" type="html">
+          <p>
+             Создайте новую запись
+          </p>
+        </field>
+    </record> -->
+
+  
+   
+</odoo>

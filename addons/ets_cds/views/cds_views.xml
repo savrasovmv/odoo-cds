@@ -1,0 +1,125 @@
+<?xml version="1.0"?>
+<odoo>
+
+    <record id="cds_department_action" model="ir.actions.act_window">
+        <field name="name">Подразделения</field>
+        <field name="res_model">cds.department</field>
+        <field name="view_mode">tree,form</field>
+        <field name="help" type="html">
+          <p>
+             Создайте новую запись
+          </p>
+        </field>
+    </record>
+
+
+    <record id="cds_location_action" model="ir.actions.act_window">
+        <field name="name">Местонахождение</field>
+        <field name="res_model">cds.location</field>
+        <field name="view_mode">tree,form</field>
+        <field name="help" type="html">
+          <p>
+             Создайте новую запись
+          </p>
+        </field>
+    </record>
+
+
+    <record id="cds_object_type_action" model="ir.actions.act_window">
+        <field name="name">Типы объектов</field>
+        <field name="res_model">cds.object_type</field>
+        <field name="view_mode">tree,form</field>
+        <field name="help" type="html">
+          <p>
+             Создайте новую запись
+          </p>
+        </field>
+    </record>
+
+
+    <record id="cds_object_class_action" model="ir.actions.act_window">
+        <field name="name">Классы объектов</field>
+        <field name="res_model">cds.object_class</field>
+        <field name="view_mode">tree,form</field>
+        <field name="help" type="html">
+          <p>
+             Создайте новую запись
+          </p>
+        </field>
+    </record>
+
+
+    <record id="cds_energy_complex_action" model="ir.actions.act_window">
+        <field name="name">Энергокомплексы</field>
+        <field name="res_model">cds.energy_complex</field>
+        <field name="view_mode">tree,form</field>
+        <field name="help" type="html">
+          <p>
+             Создайте новую запись
+          </p>
+        </field>
+    </record>
+
+
+    <record id="cds_energy_complex_object_action" model="ir.actions.act_window">
+        <field name="name">Объекты</field>
+        <field name="res_model">cds.energy_complex_object</field>
+        <field name="view_mode">tree,form</field>
+        <field name="help" type="html">
+          <p>
+             Создайте новую запись
+          </p>
+        </field>
+    </record>
+
+
+    <!-- <record id="cds_request_state_action" model="ir.actions.act_window">
+        <field name="name">Статусы</field>
+        <field name="res_model">cds.request_state</field>
+        <field name="view_mode">tree,form</field>
+        <field name="help" type="html">
+          <p>
+             Создайте новую запись
+          </p>
+        </field>
+    </record> -->
+
+    <!-- <record id="base_multi_sync_line_action" model="ir.actions.act_window">
+        <field name="name">Синхронизированные объекты</field>
+        <field name="res_model">base.multi_sync_line</field>
+        <field name="view_mode">tree,form</field>
+        <field name="help" type="html">
+          <p>
+             Создайте новую запись
+          </p>
+        </field>
+    </record>
+
+
+
+    <record id="base_multi_sync_log_view_tree" model="ir.ui.view">
+        <field name="name">base.multi_sync_log.tree</field>
+        <field name="model">base.multi_sync_log</field>
+        <field name="arch" type="xml">
+            <tree>
+                <field name="date"/>
+                <field name="name"/>
+                <field name="server_id"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="base_multi_sync_log_action" model="ir.actions.act_window">
+        <field name="name">Результаты синхронизации</field>
+        <field name="res_model">base.multi_sync_log</field>
+        <field name="view_mode">tree,form</field>
+        <field name="help" type="html">
+          <p>
+             Создайте новую запись
+          </p>
+        </field>
+    </record> -->
+
+  
+   
+</odoo>

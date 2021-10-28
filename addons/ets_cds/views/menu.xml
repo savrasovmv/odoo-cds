@@ -1,0 +1,22 @@
+<?xml version="1.0"?>
+<odoo>
+
+     <menuitem id="menu_cds_root" name="Диспетчерская служба">
+
+        <menuitem id="cds_request_first_level_menu" name="Заявки" action="cds_request_action" sequence="10">
+            
+        </menuitem>
+
+        <menuitem id="cds_directory_first_level_menu" name="Справочники" sequence="20">
+            <menuitem id="cds_department_menu_action" action="cds_department_action"/>
+            <menuitem id="cds_location_menu_action" action="cds_location_action"/>
+            <menuitem id="cds_object_type_menu_action" action="cds_object_type_action"/>
+            <menuitem id="cds_object_class_menu_action" action="cds_object_class_action"/>
+            <menuitem id="cds_energy_complex_menu_action" action="cds_energy_complex_action"/>
+            <menuitem id="cds_energy_complex_object_action" action="cds_energy_complex_object_action"/>
+            
+        </menuitem>
+
+    </menuitem>
+
+</odoo>

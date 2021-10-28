@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="1">
+        
+        <record id="seq_cds_request" model="ir.sequence">
+            <field name="name">Заявки</field>
+            <field name="code">cds.request</field>
+            <field name="prefix">%(year)s/</field>
+            <field name="padding">4</field>
+            <field name="company_id" eval="False"/>
+        </record>
+
+
+    </data>
+</odoo>
