@@ -13,7 +13,7 @@ access_cds_energy_complex_matching_manager,cds.energy_complex_matching,model_cds
 access_cds_energy_complex_matching_users,cds.energy_complex_matching,model_cds_energy_complex_matching,group_cds_users,1,0,0,0
 access_cds_energy_complex_object_manager,cds.energy_complex_object,model_cds_energy_complex_object,group_cds_manager,1,1,1,1
 access_cds_energy_complex_object_users,cds.energy_complex_object,model_cds_energy_complex_object,group_cds_users,1,0,0,0
-access_cds_request_state_manager,cds.request_state,model_cds_request_state,group_cds_manager,1,1,1,1
-access_cds_request_state_users,cds.request_state,model_cds_request_state,group_cds_users,1,0,0,0
 access_cds_request_manager,cds.request,model_cds_request,group_cds_manager,1,1,1,1
 access_cds_request_users,cds.request,model_cds_request,group_cds_users,1,0,0,0
+access_cds_request_matching_manager,cds.request_matching,model_cds_request_matching,group_cds_manager,1,1,1,1
+access_cds_request_matching_users,cds.request_matching,model_cds_request_matching,group_cds_users,1,0,0,0

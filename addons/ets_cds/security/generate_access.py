@@ -7,8 +7,8 @@ spisok.append(['cds.object_class','', 1])
 spisok.append(['cds.energy_complex','', 1])
 spisok.append(['cds.energy_complex_matching','', 1])
 spisok.append(['cds.energy_complex_object','', 1])
-spisok.append(['cds.request_state','', 1])
 spisok.append(['cds.request','', 1])
+spisok.append(['cds.request_matching','', 1])
 
 
 

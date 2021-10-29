@@ -49,7 +49,7 @@ class CdsEnergyComplex(models.Model):
     _description = "Энергокомплекс"
 
     name = fields.Char("Наименование", required=True)
-    company_partner_id = fields.Many2one('res.partner', string='Заказчик')
+    company_partner_id = fields.Many2one('res.partner', string='Заказчик', domain="[('is_company', '=', True)]")
     location_id = fields.Many2one('cds.location', string='Местонахождение')
     description = fields.Html("Описание", help="Описание энергокомплекса")
 
@@ -64,12 +64,25 @@ class CdsEnergyComplexMatching(models.Model):
     _name = "cds.energy_complex_matching"
     _description = "Согласующие"
 
-    name = fields.Char("Наименование", compute="_get_name")
-    partner_id = fields.Many2one('res.partner', string='Заказчик')
-    is_local = fields.Boolean(string='Внутренний согласующий')
+    name = fields.Char("Наименование", compute="_get_name", store=True)
+    partner_id = fields.Many2one('res.partner', string='Согласующие', domain="[('is_company', '=', False)]")
+    function = fields.Char('Должность', related='partner_id.function')
+
+    is_local = fields.Boolean(string='Внутренний согласующий', compute="_get_name", store=True)
 
     energy_complex_id = fields.Many2one('cds.energy_complex', ondelete='cascade', string=u"Энергокомплекс", required=True)
 
+    @api.depends("partner_id")
+    def _get_name(self):
+        if self.partner_id.parent_id:
+            if self.partner_id.parent_id.is_company:
+                if self.partner_id.parent_id.id == self.env.company.id:
+                    self.is_local = True
+                    self.name = self.partner_id.name + ", " + self.partner_id.function
+                else:
+                    self.is_local = False
+                    self.name = self.partner_id.name
+    
 
 
 class CdsEnergyComplexObject(models.Model):

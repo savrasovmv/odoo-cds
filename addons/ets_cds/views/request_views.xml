@@ -10,33 +10,99 @@
                     <field name="state" widget="statusbar" options="{'clickable': '1', 'fold_field': 'fold'}"></field>   
                 </header>
                 <sheet>
+                    <div class="oe_title">
+                        <h3>
+                        Заявка №
+                        <field name="name"/>
+                        от 
+                        <field name="date"/></h3>
+                    </div>        
+                    
                     <group>
-                        <group>
-                            <field name="name"/>
-                            <field name="date"/>
-                            <field name="mode"/>
+                        <group string="Объект">
+                            <field name="energy_complex_id"/>
+                            <field name="location_id"/>
+                            <field name="company_partner_id"/>
+                            <field name="object_id" domain="[('energy_complex_id', '=', energy_complex_id)]"/>
                         </group>
-                        <group>
-                            <field name="date_schedule"/>
-                            <field name="ready_hours"/>
-                            <field name="ready_minutes"/>
+                        <group string="Создал">
+                            <field name="user_id"/>
+                            <field name="partner_id"/>
+                            <field name="function"/>
+                            
                         </group>
                     </group>
-                    <group>
-                        <field name="date_work_start"/>
-                        <field name="date_work_end"/>
-                        <field name="energy_complex_id"/>
-                        <field name="location_id"/>
-                        <field name="object_id"/>
-                        <field name="work_name"/>
-                        <field name="description_mode"/>
-                        <field name="total_load_gpes"/>
-                        <field name="restrictions"/>
-                        <field name="oil_losses"/>
-                        <field name="date_hand_over"/>
-                        <field name="date_turn_off"/>
-                        <field name="date_turn_on"/>
-                    </group>
+                    <notebook>
+                        <page string="Параметры">
+                            <group >
+                                <group string="Работы" >
+                                    <field name="mode"/>
+                                    <field name="date_schedule"/>
+                                    
+                                    <label for="ready_hours" string="Аварийная готовность"/>
+                                    <div class="o_row">
+                                        <field name="ready_hours" nolabel="1" class="oe_inline"/>
+                                        ч.
+                                        <field name="ready_minutes" nolabel="1" class="oe_inline" />
+                                        мин.
+                                    </div>
+
+                                </group>
+                                <group string="Доп. информация">
+                                    <field name="total_load_gpes"/>
+                                    <field name="restrictions"/>
+                                    <field name="oil_losses"/>
+                                    
+                                </group>
+                                <group string="Период выполнения работ">
+                                    <label for="date_work_start" string="План"/>
+                                    <div class="o_row">
+                                        с
+                                        <field name="date_work_start" nolabel="1" class="oe_inline"/>
+                                        по
+                                        <field name="date_work_end" nolabel="1" class="oe_inline" />
+                                    
+                                    </div>
+
+                                    <label for="date_turn_off" string="Факт"/>
+                                    <div class="o_row">
+                                        с
+                                        <field name="date_turn_off" nolabel="1" class="oe_inline"/>
+                                        по
+                                        <field name="date_turn_on" nolabel="1" class="oe_inline" />
+                                    
+                                    </div>
+                                    
+                                </group>
+                            </group>
+                            <group>
+                                <field name="work_name" />
+                                <field name="description_mode"/>
+                            </group>
+                            
+                        </page>
+                        <page string="Согласование">
+                            <group>
+                                <field name="date_hand_over"/>
+                                <!-- <field name="date_turn_off"/>
+                                <field name="date_turn_on"/> -->
+                            </group>
+                            <field name="matching_ids">
+                                <tree editable="botton">
+                                    <field name="partner_id"/>
+                                    <field name="function"/>
+                                    <field name="is_local"/>
+                                    <field name="state"/>
+                                    <field name="user_id"/>
+                                    <field name="date_state"/>
+
+                                </tree>
+                                
+                            </field> 
+
+                        </page>
+
+                    </notebook>  
                 </sheet>
             </form>
         </field>
@@ -52,6 +118,9 @@
           </p>
         </field>
     </record>
+
+
+    
 
 
     <!-- <record id="cds_request_state_action" model="ir.actions.act_window">

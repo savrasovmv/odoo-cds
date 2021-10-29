@@ -2,3 +2,4 @@
 
 from . import cds
 from . import request
+from . import res_partner

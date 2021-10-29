@@ -31,7 +31,9 @@
     'data': [
         'views/cds_views.xml',
         'views/request_views.xml',
+        'views/dashboard_views.xml',
         'views/cds_sequence_data.xml',
+        'views/res_partner_views.xml',
         'views/menu.xml',
         'security/security.xml',
         'security/ir.model.access.csv',
