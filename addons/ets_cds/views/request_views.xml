@@ -94,6 +94,7 @@
                                     <field name="is_local"/>
                                     <field name="state"/>
                                     <field name="user_id"/>
+                                    <field name="is_send"/>
                                     <field name="date_state"/>
 
                                 </tree>

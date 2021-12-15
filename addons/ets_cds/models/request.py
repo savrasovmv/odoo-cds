@@ -77,6 +77,9 @@ class CdsRequest(models.Model):
         if self.user_id:
             self.partner = self.user_id.partner_id
 
+    # def action_create_pdf(self):
+
+
 
 
 class CdsRequestMatching(models.Model):
@@ -97,6 +100,7 @@ class CdsRequestMatching(models.Model):
     )
     user_id = fields.Many2one('res.users', string='Согласовал', readonly=True, copy=False)
     date_state = fields.Datetime(string='Дата отметки', readonly=True, copy=False)
+    is_send = fields.Boolean(string='Отправлена?', readonly=True, copy=False)
 
 
     request_id = fields.Many2one('cds.request', ondelete='cascade', string=u"Заявка", required=True)

@@ -1,0 +1,46 @@
+<?xml version="1.0"?>
+<odoo>
+
+    <template id="request_report">
+        <t t-call="web.html_container">  
+            <t t-foreach="docs" t-as="o">
+                    <div class="page">
+                        <h3>Заявка № <span t-field="o.name"/></h3>
+                        <h4>на отключение (включение) оборудования</h4>
+                        <h4><span t-field="o.company_partner_id.name"/></h4>
+                    </div>
+            </t>
+        </t>
+
+            <!-- <t t-foreach="docs" t-as="o">
+                <t t-call="web.external_layout">
+                    <div class="page">
+                        <h2>Report title</h2>
+                        <p>This object's name is <span t-field="o.name"/></p>
+                    </div>
+                </t>
+            </t> -->
+    </template>
+
+
+
+    <record id="action_print_request" model="ir.actions.report">
+        <field name="name">Зявка</field>
+        <field name="model">cds.request</field>
+        <field name="report_type">qweb-pdf</field>
+        <field name="report_name">ets_cds.request_report</field>
+        <field name="report_file">ets_cds.request_report</field>
+        <field name="print_report_name">'Зявка - %s' % (object.name)</field>
+        <field name="binding_model_id" ref="model_cds_request"/>
+        <field name="paperformat_id" ref="ets_cds.paperformat_lowmargin" />
+    </record>
+
+
+
+    
+
+    <!-- <record id="ets_cds.request_report" model="ir.actions.report.xml">
+        <field name="paperformat_id" ref="ets_cds.paperformat_lowmargin" />
+    </record> -->
+
+</odoo>

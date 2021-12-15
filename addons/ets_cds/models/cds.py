@@ -100,4 +100,25 @@ class CdsEnergyComplexObject(models.Model):
     energy_complex_id = fields.Many2one('cds.energy_complex', ondelete='cascade', string=u"Энергокомплекс", required=True)
 
 
+    @api.depends("object_type_id", "object_class_id", "serial")
+
+
+    def _get_name(self):
+        
+        name = ""
+
+        if self.object_type_id:
+            name += self.object_type_id.name
+
+        if self.serial:
+            name += '-' + self.serial
+
+        if self.object_class_id:
+            name += ' ' + self.object_class_id.name
+
+        if len(name)>0:
+            self.name = name
+
+
+
 

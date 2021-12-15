@@ -34,6 +34,8 @@
         'views/dashboard_views.xml',
         'views/cds_sequence_data.xml',
         'views/res_partner_views.xml',
+        'views/paperformat.xml',
+        'views/request_report.xml',
         'views/menu.xml',
         'security/security.xml',
         'security/ir.model.access.csv',
