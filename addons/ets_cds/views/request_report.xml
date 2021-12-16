@@ -31,7 +31,8 @@
                 }
 
                 h4 {
-                    line-height: 10px;
+                    line-height: 10px; !important;
+                    margin-block: 8px;
                 }
             </style>
 		</template>
@@ -44,9 +45,11 @@
                 <t t-call="ets_cds.cds_report_style"/>
                 
                     <div class="text-center">
-                        <h4 style="line-height: 1;">Заявка № <span t-field="o.name"/></h4>
-                        <h4>на отключение (включение) оборудования</h4>
-                        <h4><span t-field="o.company_partner_id.name"/></h4>
+
+                        <div style="font-weight: bold;"> Заявка № <t t-esc="o.name"/> </div>
+                        <div style="font-weight: bold;"> на отключение (включение) оборудования </div>
+                        <div style="font-weight: bold;"> <t t-esc="o.company_partner_id.name"/> </div>
+
                     </div>
 
                     <table class="table table-border-black">
@@ -55,11 +58,20 @@
                                 <td class="td-50"> 
                                     Вид (плановая, внеплановая, аварийная):
                                 </td>
-
                                 <td> 
                                     <span t-field="o.mode"/>
                                 </td>
-
+                            </tr>
+                            <tr >
+                                <td class="td-50"> 
+                                    Дата передачи
+                                </td>
+                                <td> 
+                                    <t t-set="date_hand_over" t-value="o.date_hand_over"/>
+                                    context_timestamp(<t t-esc="o.date_hand_over"/>)
+                                    <!-- 2021-12-16 15:46:25 -->
+                                    <!-- <span t-esc="context_timestamp(datetime.datetime.strptime(o.date_hand_over, '%Y-%m-%d %H:%M:%S')).strftime('%Y-%m-%d %H:%M')"/> -->
+                                </td>
                             </tr>
                         </tbody>
                     </table>
@@ -69,6 +81,7 @@
                 </div>
 
             </t>
+
         </t>
 
             <!-- <t t-foreach="docs" t-as="o">
