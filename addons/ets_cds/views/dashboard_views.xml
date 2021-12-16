@@ -5,22 +5,28 @@
         <field name="model">cds.request</field>
         
         <field name="arch" type="xml">
-            <kanban class="oe_background_grey o_kanban_dashboard" create="0" default_group_by = "state">
+            <kanban class="o_kanban_mobile o_kanban_small_column" 
+                    create="0" 
+                    default_group_by="state"
+                     >
                 <field name="name" />
                 <field name="energy_complex_id" />
                 <field name="object_id" />
+                <progressbar field="state" colors='{"failure": "success", "agreed": "green", "open": "muted"}'/>
                 <templates>
                     <t t-name="kanban-box">
-                        <div class="oe_kanban_details oe_kanban_global_click"> 
-                            <div class="o_row o_primary font-weight-bold">
-                                №
-                                <field name="name" /> 
-                                от 
-                                <field name="date" /> 
-                            </div>
-                            <field name="energy_complex_id" />
-                            <field name="object_id" />
-                      
+                        <div t-attf-class="oe_kanban_global_click">
+                            <!-- <div class="oe_kanban_details">  -->
+                                <div class="o_row o_primary font-weight-bold">
+                                    №
+                                    <field name="name" /> 
+                                    от 
+                                    <field name="date" /> 
+                                </div>
+                                <field name="energy_complex_id" />
+                                <field name="object_id" />
+                        
+                            <!-- </div> -->
                         </div>
                     </t>
                 </templates>
@@ -32,7 +38,7 @@
         <field name="name">Панель управления</field>
         <field name="res_model">cds.request</field>
         <field name="domain">[('state', '!=', 'draft'),('state', '!=', 'close'),('state', '!=', 'cancel')]</field>
-        <field name="view_mode">kanban</field>
+        <field name="view_mode">kanban,tree,form</field>
         <field name="help" type="html">
           <p>
              Создайте новую запись

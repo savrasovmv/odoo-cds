@@ -29,7 +29,11 @@
 
     # always loaded
     'data': [
+        # 'views/assets.xml',
+
         'views/cds_views.xml',
+        'views/cds_object_views.xml',
+        'views/cds_energy_complex_views.xml',
         'views/request_views.xml',
         'views/dashboard_views.xml',
         'views/cds_sequence_data.xml',

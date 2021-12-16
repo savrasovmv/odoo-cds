@@ -1,14 +1,73 @@
 <?xml version="1.0"?>
 <odoo>
 
+    
+
+        <template id="cds_report_style">
+            <style type="text/css">
+                .page {
+                    width: 100%;
+                    line-height: 14px;
+                }
+                table {
+                    width: 100%;
+                    border-collapse: collapse;
+                    font-size: 18px;
+                }
+
+                td {
+
+                        border-color:black !important;
+                        border: 2px solid black;
+                        padding: 5px !important;;
+                    }
+
+                .td-50 {
+                    width: 50%;
+                }
+
+                .text-center {
+                    text-align: center !important;
+                }
+
+                h4 {
+                    line-height: 10px;
+                }
+            </style>
+		</template>
+
     <template id="request_report">
+        
         <t t-call="web.html_container">  
             <t t-foreach="docs" t-as="o">
-                    <div class="page">
-                        <h3>Заявка № <span t-field="o.name"/></h3>
+                <div class="page">
+                <t t-call="ets_cds.cds_report_style"/>
+                
+                    <div class="text-center">
+                        <h4 style="line-height: 1;">Заявка № <span t-field="o.name"/></h4>
                         <h4>на отключение (включение) оборудования</h4>
                         <h4><span t-field="o.company_partner_id.name"/></h4>
                     </div>
+
+                    <table class="table table-border-black">
+                        <tbody >
+                            <tr >
+                                <td class="td-50"> 
+                                    Вид (плановая, внеплановая, аварийная):
+                                </td>
+
+                                <td> 
+                                    <span t-field="o.mode"/>
+                                </td>
+
+                            </tr>
+                        </tbody>
+                    </table>
+
+
+
+                </div>
+
             </t>
         </t>
 

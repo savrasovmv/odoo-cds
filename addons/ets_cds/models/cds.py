@@ -11,6 +11,8 @@ class CdsDepartment(models.Model):
     _description = "Подразделения"
 
     name = fields.Char("Наименование", required=True)
+    active = fields.Boolean(default=True)
+
 
 
 class CdsLocation(models.Model):
@@ -20,6 +22,8 @@ class CdsLocation(models.Model):
     _description = "Местонахождение"
 
     name = fields.Char("Наименование", required=True)
+    active = fields.Boolean(default=True)
+
 
 
 class CdsObjectType(models.Model):
@@ -29,6 +33,8 @@ class CdsObjectType(models.Model):
     _description = "Типы объектов"
 
     name = fields.Char("Наименование", required=True)
+    active = fields.Boolean(default=True)
+
 
 
 
@@ -39,6 +45,8 @@ class CdsObjectClass(models.Model):
     _description = "Класс объектов"
 
     name = fields.Char("Наименование", required=True)
+    active = fields.Boolean(default=True)
+
 
 
 
@@ -49,11 +57,45 @@ class CdsEnergyComplex(models.Model):
     _description = "Энергокомплекс"
 
     name = fields.Char("Наименование", required=True)
+    active = fields.Boolean(default=True)
+
     company_partner_id = fields.Many2one('res.partner', string='Заказчик', domain="[('is_company', '=', True)]")
     location_id = fields.Many2one('cds.location', string='Местонахождение')
     description = fields.Html("Описание", help="Описание энергокомплекса")
+    object_count = fields.Integer(string='Количество объектов', compute='_get_object_count')
+    request_count = fields.Integer(string='Количество заявок', compute='_get_request_count')
 
-    matching_ids = fields.One2many('cds.energy_complex_matching', 'energy_complex_id', string=u"Строка Согласующие")
+    matching_ids = fields.One2many('cds.energy_complex_matching', 'energy_complex_id', string=u"Строки Согласующие")
+    request_ids = fields.One2many('cds.request', 'energy_complex_id', string=u"Строки Заявки")
+    object_ids = fields.One2many('cds.energy_complex_object', 'energy_complex_id', string=u"Строки Заявки")
+
+
+
+    @api.depends('matching_ids')
+    def _get_object_count(self):
+        for record in self:
+            record.object_count = len(record.object_ids)
+
+    @api.depends('request_ids')
+    def _get_request_count(self):
+        for record in self:
+            record.request_count = len(record.request_ids)
+
+    def action_request(self):
+        action = self.env['ir.actions.act_window']._for_xml_id('ets_cds.cds_request_action')
+        ctx = dict(self.env.context)
+        ctx.update({'search_default_energy_complex_id': self.ids[0],
+                    })
+        action['context'] = ctx
+        return action
+    
+    def action_cds_object(self):
+        action = self.env['ir.actions.act_window']._for_xml_id('ets_cds.cds_energy_complex_object_action')
+        ctx = dict(self.env.context)
+        ctx.update({'search_default_energy_complex_id': self.ids[0],
+                    })
+        action['context'] = ctx
+        return action
 
 
 
@@ -74,14 +116,15 @@ class CdsEnergyComplexMatching(models.Model):
 
     @api.depends("partner_id")
     def _get_name(self):
-        if self.partner_id.parent_id:
-            if self.partner_id.parent_id.is_company:
-                if self.partner_id.parent_id.id == self.env.company.id:
-                    self.is_local = True
-                    self.name = self.partner_id.name + ", " + self.partner_id.function
-                else:
-                    self.is_local = False
-                    self.name = self.partner_id.name
+        for record in self:
+            if record.partner_id.parent_id:
+                if record.partner_id.parent_id.is_company:
+                    if record.partner_id.parent_id.id == record.env.company.id:
+                        record.is_local = True
+                        record.name = record.partner_id.name + ", " + record.partner_id.function
+                    else:
+                        record.is_local = False
+                        record.name = record.partner_id.name
     
 
 
@@ -92,17 +135,20 @@ class CdsEnergyComplexObject(models.Model):
     _description = "Объекты"
 
     name = fields.Char("Наименование", compute="_get_name", store=True)
-    name_partner = fields.Char("Наименование для заказчика", required=True)
+    active = fields.Boolean(default=True)
+
+    is_name_partner = fields.Boolean(string='Другое имя для заказчика')
+    name_partner = fields.Char("Наименование для заказчика")
     object_type_id = fields.Many2one('cds.object_type', string='Тип', required=True)
     object_class_id = fields.Many2one('cds.object_class', string='Класс', required=True)
     serial = fields.Char(string='Номер', required=True)
+    description = fields.Html("Описание", help="Описание энергокомплекса")
+
 
     energy_complex_id = fields.Many2one('cds.energy_complex', ondelete='cascade', string=u"Энергокомплекс", required=True)
 
 
     @api.depends("object_type_id", "object_class_id", "serial")
-
-
     def _get_name(self):
         
         name = ""

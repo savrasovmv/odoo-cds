@@ -20,10 +20,10 @@
                     
                     <group>
                         <group string="Объект">
-                            <field name="energy_complex_id"/>
-                            <field name="location_id"/>
-                            <field name="company_partner_id"/>
-                            <field name="object_id" domain="[('energy_complex_id', '=', energy_complex_id)]"/>
+                            <field name="energy_complex_id" options='{"no_create": 1, "no_create_edit": 1}'/>
+                            <field name="location_id" />
+                            <field name="company_partner_id" />
+                            <field name="object_id" domain="[('energy_complex_id', '=', energy_complex_id)]" options='{"no_create": 1, "no_create_edit": 1}'/>
                         </group>
                         <group string="Создал">
                             <field name="user_id"/>
@@ -83,13 +83,27 @@
                         </page>
                         <page string="Согласование">
                             <group>
+                                <group>
                                 <field name="date_hand_over"/>
                                 <!-- <field name="date_turn_off"/>
                                 <field name="date_turn_on"/> -->
+                                </group>
+                            </group>
+                            <group>
+                            <div class="oe_button_box" name="button_box">
+                                <button name="action_set_request_matching"
+                                    type="object"
+                                    class="oe_stat_button oe_edit_only"
+                                    icon="fa-refresh" 
+                                    string="Заполнить"
+                                    attrs="{'invisible': [('state', '!=', 'draft')]}"
+                                >
+                                </button>
+                            </div>
                             </group>
                             <field name="matching_ids">
                                 <tree editable="botton">
-                                    <field name="partner_id"/>
+                                    <field name="partner_id" options='{"no_create": 1, "no_create_edit": 1}'/>
                                     <field name="function"/>
                                     <field name="is_local"/>
                                     <field name="state"/>
@@ -108,11 +122,47 @@
             </form>
         </field>
     </record>
+
+
+    <record id="cds_request_view_tree" model="ir.ui.view">
+        <field name="name">cds.request.tree</field>
+        <field name="model">cds.request</field>
+        <field name="arch" type="xml">
+            <tree >
+                <field name="date"/>
+                <field name="name"/>
+                <field name="energy_complex_id"/>
+                <field name="object_id"/>
+                <field name="state" decoration-danger="state=='failure'"/>
+                <field name="partner_id"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="cds_request_view_search" model="ir.ui.view">
+        <field name="name">cds.request.view.search</field>
+        <field name="model">cds.request</field>
+        <field name="arch" type="xml">
+            <search string="Поиск Заявок">
+                <field name="name"/>
+                <field name="energy_complex_id"/>
+                <field name="object_id"/>
+                <field name="partner_id"/>
+                <separator/>
+                <filter name="completed" string="Completed" domain="[('state', '=', 'done')]"/>
+                <group expand="0" string="Группировать по">
+                    <filter name="group_by_company_partner_id" string="Заказчику" domain="[]" context="{'group_by': 'company_partner_id'}"/>
+                    <filter name="group_by_energy_complex_id" string="Энергокомплексу" domain="[]" context="{'group_by': 'energy_complex_id'}"/>
+                    <filter name="group_by_object_id" string="Объекту" domain="[]" context="{'group_by': 'object_id'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
     
     <record id="cds_request_action" model="ir.actions.act_window">
         <field name="name">Заявки</field>
         <field name="res_model">cds.request</field>
-        <field name="view_mode">tree,form</field>
+        <field name="view_mode">tree,form,kanban</field>
         <field name="help" type="html">
           <p>
              Создайте новую запись

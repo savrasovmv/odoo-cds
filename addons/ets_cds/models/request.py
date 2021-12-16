@@ -15,8 +15,8 @@ class CdsRequest(models.Model):
     date = fields.Datetime(string='Дата', copy=False, readonly=True, default=fields.Datetime.now)
 
     user_id = fields.Many2one('res.users', copy=False, string='Пользователь', readonly=True, default=lambda self: self.env.user)
-    partner_id = fields.Many2one('res.partner', copy=False, string='Сотрудник', related='user_id.partner_id')
-    function = fields.Char('Должность', copy=False, related='partner_id.function')
+    partner_id = fields.Many2one('res.partner', copy=False, string='Сотрудник', related='user_id.partner_id', store=True)
+    function = fields.Char('Должность', copy=False, related='partner_id.function', store=True)
     
 
     mode = fields.Selection([
@@ -33,8 +33,8 @@ class CdsRequest(models.Model):
     date_work_end = fields.Datetime(string='Дата окончания работ')
 
     energy_complex_id = fields.Many2one('cds.energy_complex', string='Энергокомплекс')
-    location_id = fields.Many2one('cds.location', string='Местонахождение', related='energy_complex_id.location_id')
-    company_partner_id = fields.Many2one('res.partner', string='Заказчик', related='energy_complex_id.company_partner_id')
+    location_id = fields.Many2one('cds.location', string='Местонахождение', related='energy_complex_id.location_id', store=True)
+    company_partner_id = fields.Many2one('res.partner', string='Заказчик', related='energy_complex_id.company_partner_id', store=True)
     object_id = fields.Many2one('cds.energy_complex_object', string='Объект')
 
     work_name = fields.Text('Наименование работ')
@@ -56,7 +56,12 @@ class CdsRequest(models.Model):
             ('open', 'Открыта'),
             ('close', 'Закрыта'),
             ('cancel', 'Отменена'),
-        ], string="Статус", default='draft', required=True, copy=False,
+        ],
+        group_expand='_expand_groups',
+        string="Статус", 
+        default='draft', 
+        required=True, 
+        copy=False,
     )
 
     date_turn_off = fields.Datetime(string='Отключение', copy=False)
@@ -64,6 +69,10 @@ class CdsRequest(models.Model):
 
     matching_ids = fields.One2many('cds.request_matching', 'request_id', string=u"Строки Согласующие")
 
+
+    @api.model
+    def _expand_groups(self, states, domain, order):
+        return ['draft', 'matching_in', 'matching_out', 'agreed', 'failure', 'open', 'close', 'cancel']
 
 
     @api.model
@@ -77,6 +86,15 @@ class CdsRequest(models.Model):
         if self.user_id:
             self.partner = self.user_id.partner_id
 
+    def action_set_request_matching(self):
+        """Заполнить согласующих из шаблона Энергокомплекса"""
+        self.matching_ids.unlink()
+
+        for line in self.energy_complex_id.matching_ids:
+            self.env['cds.request_matching'].create({
+                'request_id': self.id,
+                'partner_id': line.partner_id.id,
+            })
     # def action_create_pdf(self):
 
 
@@ -93,10 +111,11 @@ class CdsRequestMatching(models.Model):
     function = fields.Char('Должность', related='partner_id.function')
     is_local = fields.Boolean(string='Внутренний согласующий', compute="_get_name", store=True)
     state = fields.Selection(selection=[
+            ('await', 'Ожидание'), 
             ('matching', 'На согласовании'), 
             ('agreed', 'Согласованно'), 
             ('failure', 'Отказано'), 
-        ], string="Статус", default='matching', required=True, copy=False, readonly=True
+        ], string="Статус", default='await', required=True, copy=False, readonly=True
     )
     user_id = fields.Many2one('res.users', string='Согласовал', readonly=True, copy=False)
     date_state = fields.Datetime(string='Дата отметки', readonly=True, copy=False)
@@ -107,11 +126,12 @@ class CdsRequestMatching(models.Model):
 
     @api.depends("partner_id")
     def _get_name(self):
-        if self.partner_id.parent_id:
-            if self.partner_id.parent_id.is_company:
-                if self.partner_id.parent_id.id == self.env.company.id:
-                    self.is_local = True
-                    self.name = self.partner_id.name + ", " + self.partner_id.function
-                else:
-                    self.is_local = False
-                    self.name = self.partner_id.name
+        for record in self:
+            if record.partner_id.parent_id:
+                if record.partner_id.parent_id.is_company:
+                    if record.partner_id.parent_id.id == record.env.company.id:
+                        record.is_local = True
+                        record.name = record.partner_id.name + ", " + record.partner_id.function
+                    else:
+                        record.is_local = False
+                        record.name = record.partner_id.name

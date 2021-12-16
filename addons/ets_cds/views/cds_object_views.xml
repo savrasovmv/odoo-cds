@@ -1,0 +1,80 @@
+<?xml version="1.0"?>
+<odoo>
+
+    <record id="cds_energy_complex_object_view_form" model="ir.ui.view">
+        <field name="name">cds.energy_complex_object.form</field>
+        <field name="model">cds.energy_complex_object</field>
+        <field name="arch" type="xml">
+            <form string="Объекты">
+                <sheet>
+
+                    <div class="oe_title" style="width: 100%;">
+                        <label for="name" class="oe_edit_only"/>
+                        <h1><field name="name" placeholder="Наименование"/></h1>
+                    </div>
+                
+                    <notebook>
+                        <page string="Параметры">
+                            <group >
+                                <group >
+                                    <field name="energy_complex_id"/>
+                                    <field name="object_type_id" options='{"no_create": 1, "no_create_edit": 1}'/>
+                                    <field name="object_class_id" options='{"no_create": 1, "no_create_edit": 1}'/>
+                                    <field name="serial" />
+                                </group>
+                                <group>
+                                    <field name="is_name_partner" options='{"no_create": 1, "no_create_edit": 1}'/>
+                                    <field name="name_partner" attrs="{'invisible': [('is_name_partner', '==', False)]}"/>
+                                </group>
+                            </group>
+                        </page>
+                        <page string="Описание">
+                            <field name="description"/>
+                        </page>
+
+                    </notebook>  
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="cds_energy_complex_object_view_tree" model="ir.ui.view">
+        <field name="name">cds.energy_complex_object.tree</field>
+        <field name="model">cds.energy_complex_object</field>
+        <field name="arch" type="xml">
+            <tree >
+                <field name="name"/>
+                <field name="energy_complex_id"/>
+                <field name="name_partner"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="cds_energy_complex_object_view_search" model="ir.ui.view">
+        <field name="name">cds.energy_complex_object.view.search</field>
+        <field name="model">cds.energy_complex_object</field>
+        <field name="arch" type="xml">
+            <search string="Поиск Объекта">
+                <field name="name"/>
+                <field name="energy_complex_id"/>
+                <separator/>
+                <group expand="0" string="Группировать по">
+                    <filter name="group_by_energy_complex_id" string="Энергокомплексу" domain="[]" context="{'group_by': 'energy_complex_id'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="cds_energy_complex_object_action" model="ir.actions.act_window">
+        <field name="name">Объекты</field>
+        <field name="res_model">cds.energy_complex_object</field>
+        <field name="view_mode">tree,form</field>
+        <field name="help" type="html">
+          <p>
+             Создайте новую запись
+          </p>
+        </field>
+    </record>
+
+
+</odoo>
