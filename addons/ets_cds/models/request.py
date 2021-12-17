@@ -51,8 +51,8 @@ class CdsRequest(models.Model):
             ('draft', 'Черновик'), 
             ('matching_in', 'Внутреннее согласование'), 
             ('matching_out', 'Согласование с заказчиком'), 
-            ('agreed', 'Согласованно'), 
-            ('failure', 'Отказано'), 
+            ('agreed', 'Согласовано'), 
+            ('failure', 'Не согласовано'), 
             ('open', 'Открыта'),
             ('close', 'Закрыта'),
             ('cancel', 'Отменена'),
@@ -95,7 +95,12 @@ class CdsRequest(models.Model):
                 'request_id': self.id,
                 'partner_id': line.partner_id.id,
             })
-    # def action_create_pdf(self):
+
+
+    def random_value(self):
+        from random import randint
+        value = randint(10, 40)
+        return value
 
 
 
@@ -113,11 +118,11 @@ class CdsRequestMatching(models.Model):
     state = fields.Selection(selection=[
             ('await', 'Ожидание'), 
             ('matching', 'На согласовании'), 
-            ('agreed', 'Согласованно'), 
-            ('failure', 'Отказано'), 
+            ('agreed', 'Согласовано'), 
+            ('failure', 'Не согласовано'), 
         ], string="Статус", default='await', required=True, copy=False, readonly=True
     )
-    user_id = fields.Many2one('res.users', string='Согласовал', readonly=True, copy=False)
+    user_id = fields.Many2one('res.users', string='Согласовал', readonly=False, copy=False)
     date_state = fields.Datetime(string='Дата отметки', readonly=True, copy=False)
     is_send = fields.Boolean(string='Отправлена?', readonly=True, copy=False)
 

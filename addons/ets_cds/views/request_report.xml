@@ -7,19 +7,19 @@
             <style type="text/css">
                 .page {
                     width: 100%;
-                    line-height: 14px;
+                    font-family: "Arial";
                 }
                 table {
                     width: 100%;
                     border-collapse: collapse;
-                    font-size: 18px;
+                    font-size: 14px;
                 }
 
                 td {
 
                         border-color:black !important;
-                        border: 2px solid black;
-                        padding: 5px !important;;
+                        border: 1px solid black;
+                        padding: 3px !important;;
                     }
 
                 .td-50 {
@@ -34,6 +34,35 @@
                     line-height: 10px; !important;
                     margin-block: 8px;
                 }
+
+                .sig-main {
+                        width: 100%;
+                        flex-wrap: nowrap;
+                        display: flex;
+                        justify-content: flex-end;
+                }
+                .sig-content {
+                        position: relative; 
+                        height: 1cm;
+                        width: 100%;
+                        display: flex;
+                        justify-content: flex-end;
+                }
+                .sig-signature {
+                    
+                    position:absolute; 
+                    top:50%; 
+                    transform: translate(0, -50%);
+                    -webkit-transform: translate(0, -50%);
+                    -ms-transform: translate(0, -50%);
+                    
+                }
+                .sig-name {
+                        width: 100%;
+                        display: flex;
+                        justify-content: flex-end;
+                }
+
             </style>
 		</template>
 
@@ -46,7 +75,7 @@
                 
                     <div class="text-center">
 
-                        <div style="font-weight: bold;"> Заявка № <t t-esc="o.name"/> </div>
+                        <div style="font-weight: bold;"> Заявка № <t t-esc="o.name"/> от <span t-field="o.date" t-options='{"format": "dd.MM.yyyy"}'/></div>
                         <div style="font-weight: bold;"> на отключение (включение) оборудования </div>
                         <div style="font-weight: bold;"> <t t-esc="o.company_partner_id.name"/> </div>
 
@@ -64,15 +93,221 @@
                             </tr>
                             <tr >
                                 <td class="td-50"> 
-                                    Дата передачи
+                                    Дата по графику
                                 </td>
                                 <td> 
-                                    <t t-set="date_hand_over" t-value="o.date_hand_over"/>
-                                    context_timestamp(<t t-esc="o.date_hand_over"/>)
-                                    <!-- 2021-12-16 15:46:25 -->
-                                    <span t-esc="context_timestamp(o.date_hand_over).strftime('%Y-%m-%d %H:%M')"/>
+                                    <span t-field="o.date_schedule" t-options='{"format": "dd.MM.yyyy"}'/>
                                 </td>
                             </tr>
+                            <tr >
+                                <td class="td-50"> 
+                                    Аварийная готовность:
+                                </td>
+                                <td> 
+                                    <t t-if="o.ready_hours>0">
+                                        <span t-field="o.ready_hours"/> ч.
+                                    </t>
+                                    <t t-if="o.ready_minutes>0">
+                                        <span t-field="o.ready_minutes"/> мин.
+                                    </t>
+                                    
+                                </td>
+                            </tr>
+                            <tr >
+                                <td class="td-50"> 
+                                    Дата, время начало работ:
+                                </td>
+                                <td> 
+                                    <span t-if="o.date_work_start" t-esc="context_timestamp(o.date_work_start).strftime('%d.%m.%Y %H:%M')"/>
+                                    
+                                </td>
+                            </tr>
+                            <tr >
+                                <td class="td-50"> 
+                                    Дата, время окончания работ:
+                                </td>
+                                <td> 
+                                    <span t-if="o.date_work_end" t-esc="context_timestamp(o.date_work_end).strftime('%d.%m.%Y %H:%M')"/>
+                                    
+                                </td>
+                            </tr>
+                            <tr >
+                                <td class="td-50"> 
+                                    Месторождение:
+                                </td>
+                                <td> 
+                                    <span t-field="o.location_id"/>
+                                    
+                                </td>
+                            </tr>
+                            <tr >
+                                <td class="td-50"> 
+                                    Энергокомплекс:
+                                </td>
+                                <td> 
+                                    <span t-field="o.energy_complex_id"/>
+                                    
+                                </td>
+                            </tr>
+                            <tr >
+                                <td class="td-50"> 
+                                    Объект:
+                                </td>
+                                <td> 
+                                    <span t-field="o.object_id"/>
+                                    
+                                </td>
+                            </tr>
+                            <tr >
+                                <td class="td-50"> 
+                                    Наименование работ:
+                                </td>
+                                <td> 
+                                    <span t-field="o.work_name"/>
+                                    
+                                </td>
+                            </tr>
+                            <tr >
+                                <td class="td-50"> 
+                                    Режимные указания:
+                                </td>
+                                <td> 
+                                    <span t-field="o.description_mode"/>
+                                    
+                                </td>
+                            </tr>
+                            <tr >
+                                <td class="td-50"> 
+                                    Общая загрузка ГПЭС
+                                </td>
+                                <td> 
+                                    <span t-field="o.total_load_gpes"/>
+                                    
+                                </td>
+                            </tr>
+                            <tr >
+                                <td class="td-50"> 
+                                    Ограничения:
+                                </td>
+                                <td> 
+                                    <span t-field="o.restrictions"/>
+                                    
+                                </td>
+                            </tr>
+                            <tr >
+                                <td class="td-50"> 
+                                    Потери нефти:
+                                </td>
+                                <td> 
+                                    <span t-field="o.oil_losses"/>
+                                    
+                                </td>
+                            </tr>
+                            <tr >
+                                <td class="td-50" colspan="2"> 
+                                    <b>Согласование:</b>
+                                </td>
+                                
+                            </tr>
+                            <t t-foreach="o.matching_ids" t-as="line">
+                                <tr >
+                                    <td class="td-50"> 
+                                        <t t-esc="line.function"/>
+                                    </td>
+                                    <td style="text-align: right;"> 
+                                        <div style="position:relative; width: 100%; height: 1cm;">
+                                            <div class="sig-signature" t-attf-style="left:{{o.random_value()}}%; ">
+                                                <t t-if="line.user_id.signature_image">
+                                                    <img t-att-src="'data:image/png;base64,%s' % to_text(line.user_id.signature_image)" style="max-height:2cm; max-width:4cm;"/>
+                                                </t>
+                                            </div>
+                                             /
+                                        <t t-esc="line.partner_id.print_name"/>
+                                        </div>
+                                        <!-- <div class="sig-main">
+                                            <div class="sig-content">
+                                                <div class="sig-signature" t-attf-style=" ">
+                                                    <t t-if="line.user_id.signature_image">
+                                                        <img t-att-src="'data:image/png;base64,%s' % to_text(line.user_id.signature_image)" style="max-height:2cm; max-width:4cm;"/>
+                                                    </t>
+                                                </div>
+                                            </div> 
+                                            <div class="sig-name">
+                                                /
+                                                <t t-esc="line.partner_id.print_name"/>
+                                            </div> 
+                                        </div>  -->
+                                       
+                                        
+                                    </td>
+                                </tr>
+                                
+                            </t>
+<!-- <div style="position:relative; width: 100%; height: 1cm;">
+                                            <div class="signature" t-attf-style="left:{{o.random_value()}}%; ">
+                                                <t t-if="line.user_id.signature_image">
+                                                    <img t-att-src="'data:image/png;base64,%s' % to_text(line.user_id.signature_image)" style="max-height:2cm; max-width:4cm;"/>
+                                                </t>
+                                            </div>
+                                             /
+                                        <t t-esc="line.partner_id.print_name"/>
+                                        </div> -->
+
+                            <!-- Подпись исполнителя -->
+                            <tr >
+                                <td class="td-50"> 
+                                    <t t-esc="o.function"/>
+                                </td>
+                                <td style="text-align: right;"> 
+                                    <div style="position:relative; width: 100%; height: 1cm;">
+                                        <div class="sig-signature" t-attf-style="left:{{o.random_value()}}%; ">
+                                            <t t-if="o.user_id.signature_image">
+                                                <img t-att-src="'data:image/png;base64,%s' % to_text(o.user_id.signature_image)" style="max-height:2cm; max-width:4cm;"/>
+                                            </t>
+                                        </div>
+                                            /
+                                    <t t-esc="o.partner_id.print_name"/>
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr >
+                                <td class="td-50"> 
+                                    Передал (дата, время):
+                                </td>
+                                <td> 
+                                    <span t-esc="context_timestamp(o.date_hand_over).strftime('%d.%m.%Y %H:%M')"/>
+                                </td>
+                            </tr>
+                            <tr >
+                                <td class="td-50" colspan="2"> 
+                                    
+                                </td>
+                                
+                            </tr>
+                            <tr >
+                                <td class="td-50" colspan="2"> 
+                                    <b>Выполнение:</b>
+                                </td>
+                                
+                            </tr>
+                            <tr >
+                                <td class="td-50"> 
+                                    Отключение (дата, время):
+                                </td>
+                                <td> 
+                                    <span t-if="o.date_turn_off" t-esc="context_timestamp(o.date_turn_off).strftime('%d.%m.%Y %H:%M')"/>
+                                </td>
+                            </tr>
+                            <tr >
+                                <td class="td-50"> 
+                                    Включение (дата, время):
+                                </td>
+                                <td> 
+                                    <span t-if="o.date_turn_on" t-esc="context_timestamp(o.date_turn_on).strftime('%d.%m.%Y %H:%M')"/>
+                                </td>
+                            </tr>
+
+                            
                         </tbody>
                     </table>
 
