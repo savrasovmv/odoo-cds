@@ -64,6 +64,10 @@ class CdsEnergyComplex(models.Model):
     description = fields.Html("Описание", help="Описание энергокомплекса")
     object_count = fields.Integer(string='Количество объектов', compute='_get_object_count')
     request_count = fields.Integer(string='Количество заявок', compute='_get_request_count')
+    attachment_ids = fields.Many2many('ir.attachment', 'cds_energy_complex_ir_attachments_rel',
+        'energy_complex_id', 'attachment_id', string='Вложения')
+
+    
 
     matching_ids = fields.One2many('cds.energy_complex_matching', 'energy_complex_id', string=u"Строки Согласующие")
     request_ids = fields.One2many('cds.request', 'energy_complex_id', string=u"Строки Заявки")
@@ -81,6 +85,12 @@ class CdsEnergyComplex(models.Model):
         for record in self:
             record.request_count = len(record.request_ids)
 
+    def _compute_attachment_ids(self):
+        for record in self:
+            attachment_ids = self.env['ir.attachment'].search([('res_id', '=', record.id), ('res_model', '=', 'cds.energy_complex')]).ids
+            # message_attachment_ids = task.mapped('message_ids.attachment_ids').ids  # from mail_thread
+            record.attachment_ids = [(6, 0, list(set(attachment_ids)))]
+
     def action_request(self):
         action = self.env['ir.actions.act_window']._for_xml_id('ets_cds.cds_request_action')
         ctx = dict(self.env.context)
@@ -96,6 +106,8 @@ class CdsEnergyComplex(models.Model):
                     })
         action['context'] = ctx
         return action
+
+    
 
 
 

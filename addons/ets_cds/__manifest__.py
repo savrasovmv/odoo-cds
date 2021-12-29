@@ -15,8 +15,9 @@
     # Categories can be used to filter modules in modules listing
     # Check https://github.com/odoo/odoo/blob/14.0/odoo/addons/base/data/ir_module_category_data.xml
     # for the full list
-    'category': 'Uncategorized',
+    'category': 'Cds/Request',
     'version': '0.1',
+    'application': True,
     'external_dependencies': {
         'python': [
              
@@ -42,7 +43,7 @@
         'views/paperformat.xml',
         'views/request_report.xml',
         'views/menu.xml',
-        'security/security.xml',
+        'security/cds_security.xml',
         'security/ir.model.access.csv',
 
     ],

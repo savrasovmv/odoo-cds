@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+    	<record model="ir.module.category" id="category_cds_request">
+            <field name="description">Система управления заявками Диспетчерской службы</field>
+            <field name="name">Диспетчерская служба</field>
+            <field name="sequence">10</field>
+        </record>
+        
+        <record id="group_cds_users" model="res.groups">
+            <field name="name">Пользователь</field>
+            <field name="category_id" ref="category_cds_request" />
+            <!-- <field name="category_id" ref="base.module_category_cds"></field> -->
+            <field name="implied_ids" eval="[(4, ref('base.group_user'))]"/>
+        </record>
+        <record id="group_cds_manager" model="res.groups">
+            <field name="name">Менеджер</field>
+            <field name="category_id" ref="category_cds_request" />
+            <!-- <field name="category_id" ref="base.module_category_cds"></field> -->
+            <field name="implied_ids" eval="[(4, ref('group_cds_users'))]"/>
+        </record>
+
+
+        <!-- <record model="ir.module.category" id="base.module_category_cds_spp">
+            <field name="description">Система управления заявками Диспетчерской службы</field>
+            <field name="name">Диспетчерская служба2</field>
+            <field name="sequence">10</field>
+        </record>-->
+        
+        <record id="group_cds_spp" model="res.groups">
+            <field name="name">Редактор справочников</field>
+            <field name="category_id" ref="category_cds_request" />
+            <!-- <field name="implied_ids" eval="[(4, ref('base.group_user'))]"/> -->
+        </record> 
+
+    
+    </data>
+    
+</odoo>

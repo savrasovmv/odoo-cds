@@ -7,9 +7,28 @@
         <field name="arch" type="xml">
             <form string="Заявка">
                 <header>
+                    <button name="action_user_agreed" string="Согласовано" type="object" attrs="{'invisible': [('is_action_state', '!=', True)]}"/>
+                    <button name="action_start" string="Начать согласование" type="object" attrs="{'invisible': [('state', '!=', 'draft')]}"/>
                     <field name="state" widget="statusbar" options="{'clickable': '1', 'fold_field': 'fold'}"></field>   
                 </header>
                 <sheet>
+                    <!-- <div class="alert alert-success text-center o_form_header" attrs="{'invisible': [('signup_valid', '!=', True)]}" role="status">
+                        <a class="close" data-dismiss="alert" href="#" aria-label="Close">x</a>
+                        <div attrs="{'invisible': [('state', '!=', 'active')]}">
+                            <strong>A password reset has been requested for this user. An email containing the following link has been sent:</strong>
+                        </div>
+                        <div attrs="{'invisible': [('state', '!=', 'new')]}">
+                            <strong>An invitation email containing the following subscription link has been sent:</strong>
+                        </div>
+                        <div><field name="signup_url" widget="url"/></div>
+                         <field name="signup_valid" invisible="1"/>
+                     </div> -->
+                    <div class="alert alert-success text-center o_form_header" role="status">
+                        <field name="action_state" />
+                    </div>
+                    <group>
+                        <field name="is_action_state" invisible="1"/>
+                    </group>
                     <div class="oe_title">
                         <h3>
                         Заявка №
@@ -79,6 +98,11 @@
                                 <field name="work_name" />
                                 <field name="description_mode"/>
                             </group>
+
+                            <group string="Комментарии">
+                                <field name="description_partner" />
+                                <field name="description"/>
+                            </group>
                             
                         </page>
                         <page string="Согласование">
@@ -117,7 +141,13 @@
 
                         </page>
 
+
                     </notebook>  
+                    <div class="o_attachment_preview"/>
+                    <div class="oe_chatter">
+                        <field name="attachment_ids"  widget="many2many_binary" string="Добавить вложение" class="oe_inline"
+                           />
+                    </div>
                 </sheet>
             </form>
         </field>

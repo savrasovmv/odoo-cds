@@ -60,8 +60,16 @@
                         <page string="Описание">
                             <field name="description"/>
                         </page>
+                       
 
-                    </notebook>  
+                    </notebook> 
+
+                    <div class="o_attachment_preview"/>
+                    <div class="oe_chatter">
+                        <field name="attachment_ids"  widget="many2many_binary" string="Attach a file" class="oe_inline"
+                           />
+                    </div>
+
                 </sheet>
             </form>
         </field>

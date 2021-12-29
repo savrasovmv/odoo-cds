@@ -2,6 +2,7 @@ from odoo import fields, models, api, _
 from odoo import tools
 from odoo.tools import html2plaintext
 import base64
+from datetime import datetime
 
 
 
@@ -54,6 +55,7 @@ class CdsRequest(models.Model):
             ('agreed', 'Согласовано'), 
             ('failure', 'Не согласовано'), 
             ('open', 'Открыта'),
+            ('extend', 'Продлена'),
             ('close', 'Закрыта'),
             ('cancel', 'Отменена'),
         ],
@@ -67,8 +69,18 @@ class CdsRequest(models.Model):
     date_turn_off = fields.Datetime(string='Отключение', copy=False)
     date_turn_on = fields.Datetime(string='Включение', copy=False)
 
+    description_partner = fields.Text("Комментарий для заказчика")
+    description = fields.Text("Комментарии к заявке")
+
+    attachment_ids = fields.Many2many('ir.attachment', 'cds_request_ir_attachments_rel',
+        'request_id', 'attachment_id', string='Вложения')
+
+
     matching_ids = fields.One2many('cds.request_matching', 'request_id', string=u"Строки Согласующие")
 
+    is_action_state = fields.Boolean(string='Действия для пользователя', compute="_get_action_state_user", help="Признак тредуется ли действие от пользователя на текущем сттусе заявки, True - действие требуется, False - действий не требуется")
+
+    action_state = fields.Char(string='Состояние', compute="_get_action_state", help="Текстовое описание состояния в текущем статусе")
 
     @api.model
     def _expand_groups(self, states, domain, order):
@@ -102,6 +114,62 @@ class CdsRequest(models.Model):
         value = randint(10, 40)
         return value
 
+    def _get_action_state(self):
+        self.ensure_one()
+        self.action_state = self.state
+
+        if self.state == 'draft':
+            self.action_state = "Черновик. Нажмите Начать, что бы зпустить процесс согласования"
+        if self.state == 'matching_in':
+            count = self.env['cds.request_matching'].search_count([
+                ('request_id', '=', self.id),
+                ('is_local', '=', True),
+                ('state', '=', 'matching'),
+                ('user_id', '=', False),
+            ])
+            if count>0: 
+                self.action_state = "Ожидает согласования от %s пользователей" % (count)
+            else:
+                self.action_state = "Внутреннее согласование завершено. Необходимо перейти к следующему этапу"
+
+
+
+
+    def _get_action_state_user(self):
+        self.ensure_one()
+        self.is_action_state = False
+        user = self.env.user
+        partner_id = user.partner_id
+        if self.state == 'matching_in' or self.state == 'matching_out':
+            count = self.env['cds.request_matching'].search_count([
+                ('request_id', '=', self.id),
+                ('partner_id', '=', partner_id.id),
+                ('state', '=', 'matching'),
+                ('user_id', '=', False),
+            ])
+            if count>0: 
+                self.is_action_state = True
+            else:
+                self.is_action_state = False
+        
+        
+
+    def action_start(self):
+        self.state = 'matching_in'
+
+
+    def action_user_agreed(self):
+        user = self.env.user
+        partner_id = user.partner_id
+
+        for line in self.matching_ids:
+            if line.partner_id == partner_id:
+                line.sudo().user_id = user.id
+                line.sudo().state = 'agreed'
+                line.sudo().date_state = datetime.now()
+
+
+
 
 
 
@@ -120,7 +188,7 @@ class CdsRequestMatching(models.Model):
             ('matching', 'На согласовании'), 
             ('agreed', 'Согласовано'), 
             ('failure', 'Не согласовано'), 
-        ], string="Статус", default='await', required=True, copy=False, readonly=True
+        ], string="Статус", default='await', required=True, copy=False
     )
     user_id = fields.Many2one('res.users', string='Согласовал', readonly=False, copy=False)
     date_state = fields.Datetime(string='Дата отметки', readonly=True, copy=False)
