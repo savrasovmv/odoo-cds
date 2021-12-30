@@ -84,7 +84,7 @@ class CdsRequest(models.Model):
 
     @api.model
     def _expand_groups(self, states, domain, order):
-        return ['draft', 'matching_in', 'matching_out', 'agreed', 'failure', 'open', 'close', 'cancel']
+        return ['draft', 'matching_in', 'matching_out', 'agreed', 'open', 'extend', 'failure', 'close', 'cancel']
 
 
     @api.model
@@ -155,7 +155,16 @@ class CdsRequest(models.Model):
         
 
     def action_start(self):
+        """При начажтии Начать согласование, сбрасываем в таблице Согласующие данные по согласованию"""
         self.state = 'matching_in'
+        for line in self.matching_ids:
+            if line.is_local == True:
+                line.state = 'matching'
+            else:
+                line.state = 'await'
+            line.user_id = False
+            line.date_state = False
+            line.is_send = False
 
 
     def action_user_agreed(self):
