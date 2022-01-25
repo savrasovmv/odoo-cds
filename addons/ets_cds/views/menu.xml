@@ -1,14 +1,14 @@
 <?xml version="1.0"?>
 <odoo>
 
-    <menuitem id="menu_cds_root" name="Диспетчерская служба"  action="cds_dashboard_action"/>
+    <menuitem id="menu_cds_root" name="Диспетчерская служба"  action="cds_dashboard_action" />
 
-        <menuitem id="cds_request_menu_action" parent="menu_cds_root" action="cds_request_action" sequence="10"/>
+        <menuitem id="cds_request_menu_action" parent="menu_cds_root" action="cds_request_action" sequence="10" />
 
            
 
-        <menuitem id="cds_first_level_menu" parent="menu_cds_root" name="Справочники" sequence="20"/>
-            <menuitem id="cds_res_partner_menu_action" parent="cds_first_level_menu" action="base.action_partner_customer_form" name="Партнеры" sequence="10"/>
+        <menuitem id="cds_first_level_menu" parent="menu_cds_root" name="Справочники" sequence="20" />
+            <menuitem id="cds_res_partner_menu_action" parent="cds_first_level_menu" action="base.action_partner_customer_form" name="Партнеры" sequence="10" groups="base.group_user"/>
             <menuitem id="cds_department_menu_action" parent="cds_first_level_menu" action="cds_department_action" sequence="20"/>
             <menuitem id="cds_location_menu_action" parent="cds_first_level_menu" action="cds_location_action" sequence="30"/>
             <menuitem id="cds_object_type_menu_action" parent="cds_first_level_menu" action="cds_object_type_action" sequence="40"/>

@@ -7,31 +7,41 @@
             <field name="sequence">10</field>
         </record>
         
-        <record id="group_cds_users" model="res.groups">
-            <field name="name">Пользователь</field>
+        <record id="group_cds_read_only" model="res.groups">
+            <field name="name">Только чтение</field>
             <field name="category_id" ref="category_cds_request" />
-            <!-- <field name="category_id" ref="base.module_category_cds"></field> -->
-            <field name="implied_ids" eval="[(4, ref('base.group_user'))]"/>
+            <!-- <field name="description">Может просматривать заявки и справочники</field> -->
         </record>
-        <record id="group_cds_manager" model="res.groups">
-            <field name="name">Менеджер</field>
+        <record id="group_cds_matching" model="res.groups">
+            <field name="name">Участник согласования</field>
             <field name="category_id" ref="category_cds_request" />
-            <!-- <field name="category_id" ref="base.module_category_cds"></field> -->
-            <field name="implied_ids" eval="[(4, ref('group_cds_users'))]"/>
+            <!-- <field name="description">Может согласовывать заявки, видит справочники и документы на чтение</field> -->
+            <field name="implied_ids" eval="[(4, ref('group_cds_read_only'))]"/>
+        </record>
+        <record id="group_cds_dispetcher" model="res.groups">
+            <field name="name">Диспетчер</field>
+            <field name="category_id" ref="category_cds_request" />
+            <!-- <field name="description">Может создавать заявки, справочнки, согласовывать заявки (создать, редактировать)</field> -->
         </record>
 
-
-        <!-- <record model="ir.module.category" id="base.module_category_cds_spp">
-            <field name="description">Система управления заявками Диспетчерской службы</field>
-            <field name="name">Диспетчерская служба2</field>
-            <field name="sequence">10</field>
-        </record>-->
+        <record id="group_cds_manager_matching" model="res.groups">
+            <field name="name">Менеджер согласования</field>
+            <field name="category_id" ref="category_cds_request" />
+            <!-- <field name="description">Может согласовывать заявки за согласующих</field> -->
+            <field name="implied_ids" eval="[(4, ref('group_cds_read_only'))]"/>
+        </record>
         
-        <record id="group_cds_spp" model="res.groups">
-            <field name="name">Редактор справочников</field>
+        <record id="group_cds_edit_directory" model="res.groups">
+            <field name="name">Редактор справочников1</field>
             <field name="category_id" ref="category_cds_request" />
-            <!-- <field name="implied_ids" eval="[(4, ref('base.group_user'))]"/> -->
+            <!-- <field name="description">Может редактировать справочнки (создать, редактировать)</field> -->
         </record> 
+
+        <record id="group_cds_admin" model="res.groups">
+            <field name="name">Администратор</field>
+            <field name="category_id" ref="category_cds_request" />
+            <!-- <field name="description">Полный доступ, создание, редактирование, удаление</field> -->
+        </record>
 
     
     </data>
