@@ -21,7 +21,7 @@
         <record id="group_cds_dispetcher" model="res.groups">
             <field name="name">Диспетчер</field>
             <field name="category_id" ref="category_cds_request" />
-            <!-- <field name="description">Может создавать заявки, справочнки, согласовывать заявки (создать, редактировать)</field> -->
+            <!-- <field name="description">Может создавать заявки, справочники, согласовывать заявки (создать, редактировать)</field> -->
         </record>
 
         <record id="group_cds_manager_matching" model="res.groups">
