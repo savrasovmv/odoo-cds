@@ -78,9 +78,10 @@ class CdsRequest(models.Model):
 
     matching_ids = fields.One2many('cds.request_matching', 'request_id', string=u"Строки Согласующие")
 
-    is_action_state = fields.Boolean(string='Действия для пользователя', compute="_get_action_state_user", help="Признак тредуется ли действие от пользователя на текущем сттусе заявки, True - действие требуется, False - действий не требуется")
+    is_action_state = fields.Boolean(string='Действия для пользователя', compute="_get_action_state_user", help="Признак тредуется ли действие от пользователя на текущем статусе заявки, True - действие требуется, False - действий не требуется")
 
     action_state = fields.Char(string='Состояние', compute="_get_action_state", help="Текстовое описание состояния в текущем статусе")
+    is_end_state = fields.Boolean(string='Этап выполнен?', compute="_get_action_state", help="Если истина, то этап завершен и требуется дальнейшее действие")
 
     @api.model
     def _expand_groups(self, states, domain, order):
@@ -114,9 +115,12 @@ class CdsRequest(models.Model):
         value = randint(10, 40)
         return value
 
+    @api.depends('matching_ids')
     def _get_action_state(self):
+        """Отображает информацию в заголовке заявки, по текущему состоянию и необходимых действиях"""
         self.ensure_one()
         self.action_state = self.state
+        self.is_end_state = False
 
         if self.state == 'draft':
             self.action_state = "Черновик. Нажмите Начать, что бы зпустить процесс согласования"
@@ -131,28 +135,84 @@ class CdsRequest(models.Model):
                 self.action_state = "Ожидает согласования от %s пользователей" % (count)
             else:
                 self.action_state = "Внутреннее согласование завершено. Необходимо перейти к следующему этапу"
-
-
-
-
-    def _get_action_state_user(self):
-        self.ensure_one()
-        self.is_action_state = False
-        user = self.env.user
-        partner_id = user.partner_id
-        if self.state == 'matching_in' or self.state == 'matching_out':
+                self.is_end_state = True
+        
+        if self.state == 'matching_out':
             count = self.env['cds.request_matching'].search_count([
                 ('request_id', '=', self.id),
-                ('partner_id', '=', partner_id.id),
+                ('is_local', '=', False),
                 ('state', '=', 'matching'),
                 ('user_id', '=', False),
             ])
             if count>0: 
-                self.is_action_state = True
+                self.action_state = "Ожидает согласования от %s заказчика" % (count)
             else:
-                self.is_action_state = False
+                self.action_state = "Согласование с заказчиком завершено. Необходимо перейти к следующему этапу"
+                self.is_end_state = True
+
+
+
+    def _get_action_state_user(self):
+        """Устанавливает признак необходимости действия для текущего пользователя"""
+
+        self.ensure_one()
+        self.is_action_state = False
+        user = self.env.user
+        partner_id = user.partner_id
+
+        # Внутреннее согласование и текущий пользователь есть в списке согласующих
+        if self.state == 'matching_in':
+            count = self.env['cds.request_matching'].search_count([
+                ('request_id', '=', self.id),
+                ('partner_id', '=', partner_id.id),
+                ('state', '=', 'matching'),
+                ('is_local', '=', True),
+                ('user_id', '=', False),
+            ])
+            if count>0: 
+                self.is_action_state = True
+
+        if self.state == 'matching_out':
+            count = self.env['cds.request_matching'].search_count([
+                ('request_id', '=', self.id),
+                ('partner_id', '=', partner_id.id),
+                ('state', '=', 'matching'),
+                ('is_local', '=', False),
+                ('user_id', '=', False),
+            ])
+            if count>0: 
+                self.is_action_state = True
+            
         
         
+    def action_user_agreed(self):
+        """Действие Согласованно в форме заявки"""
+
+        user = self.env.user
+        partner_id = user.partner_id
+
+        for line in self.matching_ids:
+            if line.partner_id == partner_id:
+                line.sudo().user_id = user.id
+                line.sudo().state = 'agreed'
+                line.sudo().date_state = datetime.now()
+    
+    def action_user_failure(self):
+        """Действие Отказать в согласование в форме заявки"""
+
+        user = self.env.user
+        partner_id = user.partner_id
+
+        for line in self.matching_ids:
+            if line.partner_id == partner_id:
+                line.sudo().user_id = user.id
+                line.sudo().state = 'failure'
+                line.sudo().date_state = datetime.now()
+
+
+    ############################################
+    # Действия по изменению статуса Заявки
+    ############################################
 
     def action_start(self):
         """При начажтии Начать согласование, сбрасываем в таблице Согласующие данные по согласованию"""
@@ -167,15 +227,26 @@ class CdsRequest(models.Model):
             line.is_send = False
 
 
-    def action_user_agreed(self):
-        user = self.env.user
-        partner_id = user.partner_id
 
+    def action_send_out_matching(self):
+        """ Действие Отправить на внешнее согласование в форме заявки. 
+            Переводит в статус Внешнее согласование
+            Устанавливает дату передачи на согласование"""
+        
+        self.state = 'matching_out'
+        self.date_hand_over = datetime.now()
         for line in self.matching_ids:
-            if line.partner_id == partner_id:
-                line.sudo().user_id = user.id
-                line.sudo().state = 'agreed'
-                line.sudo().date_state = datetime.now()
+            if line.is_local == False and line.state == 'await':
+                line.state = 'matching'
+                line.user_id = False
+                line.date_state = False
+                line.is_send = False
+        
+
+        
+
+
+        
 
 
 
@@ -202,6 +273,7 @@ class CdsRequestMatching(models.Model):
     user_id = fields.Many2one('res.users', string='Согласовал', readonly=False, copy=False)
     date_state = fields.Datetime(string='Дата отметки', readonly=True, copy=False)
     is_send = fields.Boolean(string='Отправлена?', readonly=True, copy=False)
+    is_action_state = fields.Boolean(string='Действия для пользователя', compute="_get_action_state_user", help="Признак требуется ли действие от       пользователя на текущем статусе заявки, True - действие требуется, False - действий не требуется")
 
 
     request_id = fields.Many2one('cds.request', ondelete='cascade', string=u"Заявка", required=True)
@@ -217,3 +289,50 @@ class CdsRequestMatching(models.Model):
                     else:
                         record.is_local = False
                         record.name = record.partner_id.name
+
+
+    def _get_action_state_user(self):
+        """Устанавливает признак необходимости действия для текущего пользователя"""
+
+        for line in self:
+            line.is_action_state = False
+            if line.state == 'matching':
+                line.is_action_state = True
+            else:
+                line.is_action_state = False
+
+
+    def action_user_agreed(self):
+        """Действие Согласованно в форме строки согласующих заявки"""
+
+        self.ensure_one()
+        user = self.env.user
+        self.sudo().user_id = user.id
+        self.sudo().state = 'agreed'
+        self.sudo().date_state = datetime.now()
+
+    def action_user_failure(self):
+        """Действие Отказать в форме строки согласующих заявки"""
+
+        self.ensure_one()
+        user = self.env.user
+        self.sudo().user_id = user.id
+        self.sudo().state = 'failure'
+        self.sudo().date_state = datetime.now()
+
+    
+    def action_user_clear(self):
+        """Действие Очистить поле"""
+
+        self.ensure_one()
+        user = self.env.user
+        self.sudo().user_id = False
+        self.sudo().date_state = False
+        self.sudo().state = 'await'
+        if self.request_id.state == 'matching_in' and self.is_local:
+            self.sudo().state = 'matching'
+        if self.request_id.state == 'matching_out' and not self.is_local:
+            self.sudo().state = 'matching'
+        
+        self.request_id._get_action_state()
+        self.request_id._get_action_state_user()

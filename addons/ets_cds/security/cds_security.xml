@@ -41,6 +41,7 @@
             <field name="name">Администратор</field>
             <field name="category_id" ref="category_cds_request" />
             <!-- <field name="description">Полный доступ, создание, редактирование, удаление</field> -->
+            <field name="implied_ids" eval="[(4, ref('group_cds_dispetcher'))]"/>
         </record>
 
     
