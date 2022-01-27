@@ -42,6 +42,35 @@ for name in spisok:
 	print('access_%(class_name)s_%(group_name)s,%(name)s,%(modul_name)smodel_%(class_name)s,%(addon_name)s.%(group_name)s,%(access)s' % {'name':name[0], 'class_name': class_name, 'group_name': group_name, 'access': access, 'modul_name': modul_name, 'addon_name': addon_name})
 
 
+
+
+#  group_cds_executor Формирующий и подающий заявку работник.
+
+group_name = 'group_cds_executor'
+spisok = []
+spisok.append(['cds.department', '1,0,0,0'])
+spisok.append(['cds.location', '1,0,0,0'])
+spisok.append(['cds.object_type', '1,0,0,0'])
+spisok.append(['cds.object_class', '1,0,0,0'])
+spisok.append(['cds.energy_complex', '1,1,0,0'])
+spisok.append(['cds.energy_complex_matching', '1,1,1,0'])
+spisok.append(['cds.energy_complex_object', '1,1,0,0'])
+spisok.append(['cds.request', '1,1,1,0'])
+spisok.append(['cds.request_matching', '1,1,1,0'])
+
+for name in spisok:
+	class_name = name[0].replace('.','_')
+	modul_name = ''
+	
+	if len(name)>1:
+		access = name[1]
+	else:
+		access = '0,0,0,0'
+
+	print('access_%(class_name)s_%(group_name)s,%(name)s,%(modul_name)smodel_%(class_name)s,%(addon_name)s.%(group_name)s,%(access)s' % {'name':name[0], 'class_name': class_name, 'group_name': group_name, 'access': access, 'modul_name': modul_name, 'addon_name': addon_name})
+
+
+
 #  group_cds_dispetcher Может создавать заявки, справочнки, согласовывать заявки
 
 group_name = 'group_cds_dispetcher'

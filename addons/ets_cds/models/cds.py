@@ -55,6 +55,7 @@ class CdsEnergyComplex(models.Model):
 
     _name = "cds.energy_complex"
     _description = "Энергокомплекс"
+    _inherit = ['mail.thread.cc', 'mail.activity.mixin']
 
     name = fields.Char("Наименование", required=True)
     active = fields.Boolean(default=True)
@@ -64,16 +65,25 @@ class CdsEnergyComplex(models.Model):
     description = fields.Html("Описание", help="Описание энергокомплекса")
     object_count = fields.Integer(string='Количество объектов', compute='_get_object_count')
     request_count = fields.Integer(string='Количество заявок', compute='_get_request_count')
-    attachment_ids = fields.Many2many('ir.attachment', 'cds_energy_complex_ir_attachments_rel',
-        'energy_complex_id', 'attachment_id', string='Вложения')
+    attachment_ids = fields.One2many('ir.attachment', compute='_compute_attachment_ids', string="Main Attachments",
+        help="Attachment that don't come from message.")
+    # attachment_ids = fields.Many2many('ir.attachment', string='Вложения')
+    # attachment_ids = fields.Many2many('ir.attachment', 'cds_energy_complex_ir_attachments_rel',
+    #     'energy_complex_id', 'attachment_id', string='Вложения')
 
-    
+    user_id = fields.Many2one('res.users', string='Ответственный')
 
     matching_ids = fields.One2many('cds.energy_complex_matching', 'energy_complex_id', string=u"Строки Согласующие")
     request_ids = fields.One2many('cds.request', 'energy_complex_id', string=u"Строки Заявки")
     object_ids = fields.One2many('cds.energy_complex_object', 'energy_complex_id', string=u"Строки Заявки")
 
 
+    def _compute_attachment_ids(self):
+        for record in self:
+            attachment_ids = self.env['ir.attachment'].search([('res_id', '=', record.id), ('res_model', '=', 'cds.energy_complex')]).ids
+            print("++++++++attachment_ids", attachment_ids)
+            message_attachment_ids = record.mapped('message_ids.attachment_ids').ids  # from mail_thread
+            record.attachment_ids = [(6, 0, list(set(attachment_ids) - set(message_attachment_ids)))]
 
     @api.depends('matching_ids')
     def _get_object_count(self):
@@ -155,6 +165,7 @@ class CdsEnergyComplexObject(models.Model):
     object_class_id = fields.Many2one('cds.object_class', string='Класс', required=True)
     serial = fields.Char(string='Номер', required=True)
     description = fields.Html("Описание", help="Описание энергокомплекса")
+    attachment_ids = fields.Many2many('ir.attachment', string='Вложения')
 
 
     energy_complex_id = fields.Many2one('cds.energy_complex', ondelete='cascade', string=u"Энергокомплекс", required=True)

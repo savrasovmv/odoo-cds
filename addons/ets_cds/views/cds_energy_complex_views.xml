@@ -39,6 +39,7 @@
                             <group >
                                 <group >
                                     <field name="company_partner_id" options='{"no_create": 1, "no_create_edit": 1}'/>
+                                    <field name="user_id" options='{"no_create": 1, "no_create_edit": 1}'/>
                                 </group>
                                 <group>
                                     <field name="location_id" options='{"no_create": 1, "no_create_edit": 1}'/>
@@ -64,13 +65,18 @@
 
                     </notebook> 
 
-                    <div class="o_attachment_preview"/>
+                    <!-- <div class="o_attachment_preview"/>
                     <div class="oe_chatter">
                         <field name="attachment_ids"  widget="many2many_binary" string="Attach a file" class="oe_inline"
                            />
-                    </div>
+                    </div> -->
 
                 </sheet>
+                <div class="oe_chatter">
+                        <field name="message_follower_ids" options="{'post_refresh':True}" groups="base.group_user"/>
+                        <field name="activity_ids"/>
+                        <field name="message_ids"/>
+                    </div>
             </form>
         </field>
     </record>

@@ -37,7 +37,7 @@
     <record id="cds_dashboard_action" model="ir.actions.act_window">
         <field name="name">Панель управления</field>
         <field name="res_model">cds.request</field>
-        <field name="domain">[('state', '!=', 'draft'),('state', '!=', 'close'),('state', '!=', 'cancel')]</field>
+        <field name="domain">[]</field>
         <field name="view_mode">kanban,tree,form</field>
         <field name="help" type="html">
           <p>

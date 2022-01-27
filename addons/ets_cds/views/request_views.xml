@@ -7,22 +7,26 @@
         <field name="arch" type="xml">
             <form string="Заявка">
                 <header>
-                    <button name="action_start" string="Начать согласование" type="object" attrs="{'invisible': [('state', '!=', 'draft')]}"/>
+                    <button 
+                            name="action_start" 
+                            string="Начать согласование" 
+                            type="object" 
+                            attrs="{'invisible': [('state', '!=', 'draft')]}"
+                            groups="ets_cds.group_cds_dispetcher,ets_cds.group_cds_executor"
+                            />
                     <button 
                             name="action_user_agreed" 
                             string="Согласовать" 
                             class="btn-success"
                             type="object" 
-                            attrs="{'invisible': [('is_action_state', '!=', True)]}"
-                            groups="ets_cds.group_cds_matching"
+                            attrs="{'invisible': [('is_action_state', '=', False)]}"
                             />
                     <button 
                             name="action_user_failure" 
                             string="Отказать" 
                             class="btn-danger"
                             type="object" 
-                            attrs="{'invisible': [('is_action_state', '!=', True)]}"
-                            groups="ets_cds.group_cds_matching"
+                            attrs="{'invisible': [('is_action_state', '=', False)]}"
                             />
                     
                     <button 
@@ -37,29 +41,27 @@
                 </header>
                 <sheet>
                     
-                    <!-- <div class="alert alert-success text-center o_form_header" attrs="{'invisible': [('signup_valid', '!=', True)]}" role="status">
-                        <a class="close" data-dismiss="alert" href="#" aria-label="Close">x</a>
-                        <div attrs="{'invisible': [('state', '!=', 'active')]}">
-                            <strong>A password reset has been requested for this user. An email containing the following link has been sent:</strong>
-                        </div>
-                        <div attrs="{'invisible': [('state', '!=', 'new')]}">
-                            <strong>An invitation email containing the following subscription link has been sent:</strong>
-                        </div>
-                        <div><field name="signup_url" widget="url"/></div>
-                         <field name="signup_valid" invisible="1"/>
-                     </div> -->
-                    <!-- <div class="alert alert-success text-center o_form_header" role="status"> -->
+                                       
                     
-                    
-                    <div class="alert alert-success text-center o_form_header"  role="status" attrs="{'invisible': [('is_end_state', '=', False)]}" >
+                    <div 
+                        class="alert alert-success text-center o_form_header"  
+                        role="status" 
+                        attrs="{'invisible': [('is_end_state', '=', False)]}" 
+                        groups="ets_cds.group_cds_dispetcher, ets_cds.group_cds_executor"
+                        >
                         <field name="action_state" />
                     </div>
                     
-                    <div  class="alert alert-info text-center o_form_header" role="status" attrs="{'invisible': [('is_end_state', '=', True)]}">
+                    <div 
+                        class="alert alert-info text-center o_form_header" 
+                        role="status" 
+                        attrs="{'invisible': [('is_end_state', '=', True)]}"
+                        groups="ets_cds.group_cds_dispetcher, ets_cds.group_cds_executor"
+                        >
                         <field name="action_state" />
                     </div>
                     <group>
-                        <field name="is_action_state" invisible="1"/>
+                        <field name="is_action_state"/>
                         <!-- <field name="state" invisible="1"/> -->
                         <field name="is_end_state" />
                     </group>
@@ -161,13 +163,13 @@
                             </group>
                             <field name="matching_ids">
                                 <tree editable="botton">
-                                <button 
+                                <!-- <button 
                                     name="action_user_agreed" 
                                     string="" 
                                     icon="fa-check-square-o" 
                                     type="object" 
                                     class="btn-success"
-                                    attrs="{'invisible': [('is_action_state', '!=', True)]}"
+                                    attrs="{'invisible': ['|',('is_action_state', '=', False), ('state', '=', 'await')]}"
                             
                                     groups="ets_cds.group_cds_manager_matching, ets_cds.group_cds_admin"
                                     />
@@ -177,7 +179,7 @@
                                     icon="fa-ban" 
                                     type="object" 
                                     class="btn-danger"
-                                    attrs="{'invisible': [('is_action_state', '!=', True)]}"
+                                     attrs="{'invisible': ['|',('is_action_state', '=', False), ('state', '=', 'await')]}"
                                     groups="ets_cds.group_cds_manager_matching, ets_cds.group_cds_admin"
                                     />
                                 <button 
@@ -186,17 +188,22 @@
                                     icon="fa-history" 
                                     type="object" 
                                     class="btn-warning"
-                                    attrs="{'invisible': [('is_action_state', '=', True)]}"
+                                    attrs="{'invisible': [('is_action_state', '=', True), ('user_id', '=', False)]}"
                                     groups="ets_cds.group_cds_manager_matching, ets_cds.group_cds_admin"
-                                    />
+                                    /> -->
                                     <field name="partner_id" options='{"no_create": 1, "no_create_edit": 1}'/>
                                     <field name="function"/>
-                                    <field name="is_local"/>
-                                    <field name="state"/>
+                                    <field name="is_local" string="Внут."/>
+                                    <field 
+                                            name="state" 
+                                            decoration-info="state=='matching'"
+                                            decoration-success="state=='agreed'"
+                                            decoration-danger="state=='failure'" 
+                                            />
                                     <field name="user_id"/>
-                                    <field name="is_send"/>
                                     <field name="date_state"/>
-                                    <field name="is_action_state" />
+                                    <field name="is_send"/>
+                                    <!-- <field name="is_action_state" /> -->
 
                                 </tree>
                                 

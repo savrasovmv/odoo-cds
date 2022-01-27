@@ -46,7 +46,7 @@ class CdsRequest(models.Model):
     restrictions = fields.Char(string='Ограничения', default='нет')
     oil_losses = fields.Char(string='Потери нефти', default='нет')
 
-    date_hand_over = fields.Datetime(string='Дата передачи', copy=False)
+    date_hand_over = fields.Datetime(string='Дата передачи', copy=False, read=['ets_cds.group_cds_executor'])
 
     state = fields.Selection(selection=[
             ('draft', 'Черновик'), 
@@ -191,15 +191,16 @@ class CdsRequest(models.Model):
         user = self.env.user
         partner_id = user.partner_id
 
-        for line in self.matching_ids:
-            if line.partner_id == partner_id:
-                line.sudo().user_id = user.id
-                line.sudo().state = 'agreed'
-                line.sudo().date_state = datetime.now()
+        for record in self:
+            for line in record.matching_ids:
+                if line.partner_id == partner_id:
+                    # line.sudo().user_id = user.id
+                    line.sudo().state = 'agreed'
+                    # line.sudo().date_state = datetime.now()
     
     def action_user_failure(self):
         """Действие Отказать в согласование в форме заявки"""
-
+        self.ensure_one()
         user = self.env.user
         partner_id = user.partner_id
 
@@ -270,8 +271,8 @@ class CdsRequestMatching(models.Model):
             ('failure', 'Не согласовано'), 
         ], string="Статус", default='await', required=True, copy=False
     )
-    user_id = fields.Many2one('res.users', string='Согласовал', readonly=False, copy=False)
-    date_state = fields.Datetime(string='Дата отметки', readonly=True, copy=False)
+    user_id = fields.Many2one('res.users', string='Согласовал', copy=False, compute="_change_status", store=True)
+    date_state = fields.Datetime(string='Дата отметки', copy=False, compute="_change_status", store=True)
     is_send = fields.Boolean(string='Отправлена?', readonly=True, copy=False)
     is_action_state = fields.Boolean(string='Действия для пользователя', compute="_get_action_state_user", help="Признак требуется ли действие от       пользователя на текущем статусе заявки, True - действие требуется, False - действий не требуется")
 
@@ -289,6 +290,18 @@ class CdsRequestMatching(models.Model):
                     else:
                         record.is_local = False
                         record.name = record.partner_id.name
+
+    @api.depends("state")
+    def _change_status(self):
+        
+        user = self.env.user
+        for record in self:
+            if record.state == 'await' or record.state == 'matching':
+                record.user_id = False
+                record.date_state = False
+            if record.state == 'agreed' or record.state == 'failure':
+                record.user_id = user.id
+                record.date_state = datetime.now()
 
 
     def _get_action_state_user(self):
