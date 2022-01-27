@@ -11,6 +11,7 @@ class CdsRequest(models.Model):
 
     _name = "cds.request"
     _description = "Заявки"
+    _inherit = ['mail.thread.cc', 'mail.activity.mixin']
 
     name = fields.Char('Номер', copy=False, readonly=True, default=lambda x: _('New'))
     date = fields.Datetime(string='Дата', copy=False, readonly=True, default=fields.Datetime.now)
@@ -64,6 +65,7 @@ class CdsRequest(models.Model):
         default='draft', 
         required=True, 
         copy=False,
+        tracking=True
     )
 
     date_turn_off = fields.Datetime(string='Отключение', copy=False)
@@ -82,7 +84,9 @@ class CdsRequest(models.Model):
 
     action_state = fields.Char(string='Состояние', compute="_get_action_state", help="Текстовое описание состояния в текущем статусе")
     is_end_state = fields.Boolean(string='Этап выполнен?', compute="_get_action_state", help="Если истина, то этап завершен и требуется дальнейшее действие")
+    is_time_up = fields.Boolean(string='Время истекло?', compute="_get_time_up", help="Если истина, то текущее время больше чем Дата окончания работ")
 
+    
     @api.model
     def _expand_groups(self, states, domain, order):
         return ['draft', 'matching_in', 'matching_out', 'agreed', 'open', 'extend', 'failure', 'close', 'cancel']
@@ -114,6 +118,26 @@ class CdsRequest(models.Model):
         from random import randint
         value = randint(10, 40)
         return value
+
+    def _track_subtype(self, init_values):
+        # init_values contains the modified fields' values before the changes
+        #
+        # the applied values can be accessed on the record as they are already
+        # in cache
+        self.ensure_one()
+        if 'state' in init_values and self.state == 'matching_in':
+            return self.env.ref('ets_cds.mt_state_change')
+        return super(CdsRequest, self)._track_subtype(init_values)
+
+
+    def _get_time_up(self):
+        for record in self:
+            record.is_time_up = False
+            if record.date_work_end:
+                if (record.date_work_end < datetime.now() and record.state=="open" and record.date_turn_on == False) or (record.date_turn_on != False and record.date_work_end<record.date_turn_on):
+                    record.is_time_up = True
+                
+
 
     @api.depends('matching_ids')
     def _get_action_state(self):
@@ -149,6 +173,32 @@ class CdsRequest(models.Model):
             else:
                 self.action_state = "Согласование с заказчиком завершено. Необходимо перейти к следующему этапу"
                 self.is_end_state = True
+
+        if self.state == 'agreed':
+            self.action_state = "Заявка согласована. Ожидания начала работ"
+            self.is_end_state = True
+        
+        if self.state == 'open':
+            if self.is_time_up:
+                self.action_state = "Заявка открыта. Время истекло. Продлите время выполнения заявку"
+                self.is_end_state = True
+            else:
+                self.action_state = "Заявка открыта"
+        
+        if self.state == 'extend':
+            self.action_state = "Заявка продлена"
+        
+        if self.state == 'close':
+            self.action_state = "Заявка закрыта"
+            self.is_end_state = True
+
+        if self.state == 'failure':
+            self.action_state = "Заявка Не согласована"
+            self.is_end_state = True
+        
+        if self.state == 'cancel':
+            self.action_state = "Заявка Отменена"
+            self.is_end_state = True
 
 
 
@@ -226,6 +276,8 @@ class CdsRequest(models.Model):
             line.user_id = False
             line.date_state = False
             line.is_send = False
+        
+        self.message_post(body="Тестовая отправка", partner_ids=[line.partner_id.id for line in self.matching_ids])
 
 
 
@@ -242,6 +294,37 @@ class CdsRequest(models.Model):
                 line.user_id = False
                 line.date_state = False
                 line.is_send = False
+
+    def action_start_work(self):
+        """ Действие Начало выполнения работ.
+            Устанавливает в статус Открыта. Меняет дату Отключения"""
+        
+        for record in self:
+            record.state = 'open'
+            record.date_turn_off = datetime.now()
+    
+    def action_extend_work(self):
+        """ Действие Продлить выполнения работ.
+            Устанавливает в статус Продлена"""
+        
+        for record in self:
+            record.state = 'extend'
+
+    def action_end_work(self):
+        """ Действие Работы выполнены.
+            Устанавливает в статус Закрыта. Меняет дату Включения"""
+        
+        for record in self:
+            record.state = 'close'
+            record.date_turn_on = datetime.now()
+
+    def action_cancel(self):
+        """ Действие Отменить заявку.
+            Устанавливает в статус Отменена"""
+        
+        for record in self:
+            record.state = 'cancel'
+        
         
 
         

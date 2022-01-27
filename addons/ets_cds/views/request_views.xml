@@ -37,6 +37,39 @@
                             attrs="{'invisible': ['|', ('is_end_state', '=', False), ('state', '!=', 'matching_in')]}"
                             groups="ets_cds.group_cds_dispetcher"
                             />
+                    <button 
+                            name="action_start_work" 
+                            string="Начать выполнение работ" 
+                            class="btn-primary"
+                            type="object" 
+                            attrs="{'invisible': ['|', ('is_end_state', '=', False), ('state', '!=', 'agreed')]}"
+                            groups="ets_cds.group_cds_dispetcher"
+                            />
+                    <button 
+                            name="action_extend_work" 
+                            string="Продлить выполнение работ" 
+                            class="btn-primary"
+                            type="object" 
+                            attrs="{'invisible': [('state', '!=', 'open')]}"
+                            groups="ets_cds.group_cds_dispetcher"
+                            />
+                    <button 
+                            name="action_end_work" 
+                            string="Работы выполнены" 
+                            class="btn-primary"
+                            type="object" 
+                            attrs="{'invisible': [('state', '!=', 'open'), ('state', '!=', 'extend')]}"
+                            groups="ets_cds.group_cds_dispetcher"
+                            />
+
+                    <button 
+                            name="action_cancel" 
+                            string="Отменить заявку" 
+                           
+                            type="object" 
+                            attrs="{'invisible': [('state', '!=', 'failure'), ('state', '!=', 'draft')]}"
+                            groups="ets_cds.group_cds_dispetcher"
+                            />
                     <field name="state" widget="statusbar" options="{'clickable': '1', 'fold_field': 'fold'}"></field>   
                 </header>
                 <sheet>
@@ -60,10 +93,19 @@
                         >
                         <field name="action_state" />
                     </div>
+                    <div 
+                        class="alert alert-warning text-center o_form_header" 
+                        role="status" 
+                        attrs="{'invisible': [('state', '!=', 'open')]}"
+                        groups="ets_cds.group_cds_dispetcher, ets_cds.group_cds_executor"
+                        >
+                        <field name="action_state" />
+                    </div>
                     <group>
                         <field name="is_action_state"/>
                         <!-- <field name="state" invisible="1"/> -->
                         <field name="is_end_state" />
+                        <field name="is_time_up" />
                     </group>
                     <div class="oe_title">
                         <h3>
@@ -213,12 +255,13 @@
 
 
                     </notebook>  
-                    <div class="o_attachment_preview"/>
-                    <div class="oe_chatter">
-                        <field name="attachment_ids"  widget="many2many_binary" string="Добавить вложение" class="oe_inline"
-                           />
-                    </div>
+                    
                 </sheet>
+                <div class="oe_chatter">
+                    <field name="message_follower_ids" options="{'post_refresh':True}" groups="base.group_user"/>
+                    <field name="activity_ids"/>
+                    <field name="message_ids"/>
+                </div>
             </form>
         </field>
     </record>
@@ -325,6 +368,14 @@
                 </sheet>
             </form>
         </field>
+    </record>
+
+
+    <record id="mt_state_change" model="mail.message.subtype">
+        <field name="name">Заявка на согласовании</field>
+        <field name="res_model">cds.request</field>
+        <field name="default" eval="True"/>
+        <field name="description">Поступила заявка на согласование</field>
     </record>
 
   
