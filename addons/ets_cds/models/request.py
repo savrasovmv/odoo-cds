@@ -279,6 +279,28 @@ class CdsRequest(models.Model):
         
         self.message_post(body="Тестовая отправка", partner_ids=[line.partner_id.id for line in self.matching_ids])
 
+    def _notification_recipients(self, message, groups):
+        """ Handle Trip Manager recipients that can cancel the trip at the last
+        minute and kill all the fun. """
+        groups = super(CdsRequest, self)._notification_recipients(message, groups)
+
+        self.ensure_one()
+        if self.state == 'matching_in':
+            app_action = self._notification_link_helper('method',
+                                method='action_cancel')
+            trip_actions = [{'url': app_action, 'title': _('Cancel')}]
+
+        new_group = (
+            'group_cds_matching',
+            lambda partner: bool(partner.user_ids) and
+            any(user.has_group('ets_cds.group_cds_matching')
+            for user in partner.user_ids),
+            {
+                'actions': trip_actions,
+            })
+
+        return [new_group] + groups
+
 
 
     def action_send_out_matching(self):
