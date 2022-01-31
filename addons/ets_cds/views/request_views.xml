@@ -70,6 +70,15 @@
                             attrs="{'invisible': [('state', '!=', 'failure'), ('state', '!=', 'draft')]}"
                             groups="ets_cds.group_cds_dispetcher"
                             />
+
+
+                    <button 
+                            name="action_send_mail_local_matching" 
+                            string="Отправить на согласование по e-mail" 
+                           
+                            type="object" 
+                            groups="ets_cds.group_cds_dispetcher"
+                            />
                     <field name="state" widget="statusbar" options="{'clickable': '1', 'fold_field': 'fold'}"></field>   
                 </header>
                 <sheet>

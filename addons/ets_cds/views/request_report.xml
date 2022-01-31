@@ -275,7 +275,7 @@
                                     Передал (дата, время):
                                 </td>
                                 <td> 
-                                    <span t-esc="context_timestamp(o.date_hand_over).strftime('%d.%m.%Y %H:%M')"/>
+                                    <span t-if="o.date_hand_over" t-esc="context_timestamp(o.date_hand_over).strftime('%d.%m.%Y %H:%M')"/>
                                 </td>
                             </tr>
                             <tr >

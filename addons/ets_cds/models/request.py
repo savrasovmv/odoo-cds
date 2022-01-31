@@ -276,30 +276,35 @@ class CdsRequest(models.Model):
             line.user_id = False
             line.date_state = False
             line.is_send = False
+        # partner_ids=[line.partner_id.id for line in self.matching_ids]
+        self.message_post(body="Тестовая отправка", partner_ids=[9])
+        print("+++++++++++++++")
+
+    # def _notify_get_groups(self, msg_vals=None):
+    #     """ Handle Trip Manager recipients that can cancel the trip at the last
+    #     minute and kill all the fun. """
+    #     print("+++++++++++++++")
+    #     print("+++++++++++++++message", msg_vals)
+    #     groups = super(CdsRequest, self)._notify_get_groups(msg_vals=msg_vals)
+    #     print("+++++++++++++++groups", groups)
+
+    #     self.ensure_one()
+    #     if self.state == 'matching_in':
+    #         local_msg_vals = dict(msg_vals or {})
+    #         app_action = self._notify_get_action_link('controller', controller='/request/draft', **local_msg_vals)
+    #         # app_action = self._notify_get_action_link('method',
+    #         #                     method='action_cancel')
+    #         trip_actions = [{'url': app_action, 'title': _('Cancel')}]
+
+    #     new_group = (
+    #         'group_cds_matching',
+    #         lambda pdata: pdata['type'] == 'user',
+    #         {
+    #             'actions': trip_actions,
+    #         })
         
-        self.message_post(body="Тестовая отправка", partner_ids=[line.partner_id.id for line in self.matching_ids])
-
-    def _notification_recipients(self, message, groups):
-        """ Handle Trip Manager recipients that can cancel the trip at the last
-        minute and kill all the fun. """
-        groups = super(CdsRequest, self)._notification_recipients(message, groups)
-
-        self.ensure_one()
-        if self.state == 'matching_in':
-            app_action = self._notification_link_helper('method',
-                                method='action_cancel')
-            trip_actions = [{'url': app_action, 'title': _('Cancel')}]
-
-        new_group = (
-            'group_cds_matching',
-            lambda partner: bool(partner.user_ids) and
-            any(user.has_group('ets_cds.group_cds_matching')
-            for user in partner.user_ids),
-            {
-                'actions': trip_actions,
-            })
-
-        return [new_group] + groups
+    #     print("+++++++++++++++new_group", new_group)
+    #     return [new_group] + groups
 
 
 
@@ -350,7 +355,34 @@ class CdsRequest(models.Model):
         
 
         
+    def action_send_mail_local_matching(self):
+        """Отправляет письмо внутренним согласующим"""
+        template = self.env.ref('ets_cds.mail_template_request_local_matching')
+        
+        for record in self:
 
+            matching_list = self.env['cds.request_matching'].search([
+                ('request_id', '=', record.id),
+                ('is_local', '=', True),
+            ])
+
+            if len(matching_list)>0:
+                record.message_post_with_template(
+                    template.id, composition_mode='comment',
+                    model='cds.request', res_id=record.id,
+                    partner_ids=[line.partner_id.id for line in self.matching_ids]
+                    # email_layout_xmlid='mail.mail_notification_light',
+                )
+            # email_to = record.get_registration_email()
+            
+            # if email_to:
+            #     email_values={
+            #        'email_to': email_to,
+            #     }
+            #     template.send_mail(record.id, force_send=True, email_values=email_values)
+
+            # else:
+            #     return False
 
         
 

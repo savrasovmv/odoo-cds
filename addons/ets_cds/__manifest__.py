@@ -43,6 +43,7 @@
         'views/cds_sequence_data.xml',
         'views/paperformat.xml',
         'views/request_report.xml',
+        'data/mail_data.xml',
         'security/cds_security.xml',
         'security/ir.model.access.csv',
         'views/menu.xml',

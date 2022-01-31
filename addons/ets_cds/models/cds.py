@@ -75,7 +75,7 @@ class CdsEnergyComplex(models.Model):
 
     matching_ids = fields.One2many('cds.energy_complex_matching', 'energy_complex_id', string=u"Строки Согласующие")
     request_ids = fields.One2many('cds.request', 'energy_complex_id', string=u"Строки Заявки")
-    object_ids = fields.One2many('cds.energy_complex_object', 'energy_complex_id', string=u"Строки Заявки")
+    object_ids = fields.One2many('cds.energy_complex_object', 'energy_complex_id', string=u"Объекты энергокомплекса")
 
 
     def _compute_attachment_ids(self):
