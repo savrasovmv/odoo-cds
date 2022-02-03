@@ -19,6 +19,9 @@ class CdsRequest(models.Model):
     user_id = fields.Many2one('res.users', copy=False, string='Пользователь', readonly=True, default=lambda self: self.env.user)
     partner_id = fields.Many2one('res.partner', copy=False, string='Сотрудник', related='user_id.partner_id', store=True)
     function = fields.Char('Должность', copy=False, related='partner_id.function', store=True)
+
+    company_id = fields.Many2one('res.company', string='Company', required=True, readonly=True,
+        default=lambda self: self.env.company)
     
 
     mode = fields.Selection([
@@ -142,6 +145,7 @@ class CdsRequest(models.Model):
     @api.depends('matching_ids')
     def _get_action_state(self):
         """Отображает информацию в заголовке заявки, по текущему состоянию и необходимых действиях"""
+
         self.ensure_one()
         self.action_state = self.state
         self.is_end_state = False
@@ -149,14 +153,15 @@ class CdsRequest(models.Model):
         if self.state == 'draft':
             self.action_state = "Черновик. Нажмите Начать, что бы зпустить процесс согласования"
         if self.state == 'matching_in':
-            count = self.env['cds.request_matching'].search_count([
+            matching = self.env['cds.request_matching'].search([
                 ('request_id', '=', self.id),
                 ('is_local', '=', True),
                 ('state', '=', 'matching'),
                 ('user_id', '=', False),
             ])
+            count = len(matching)
             if count>0: 
-                self.action_state = "Ожидает согласования от %s пользователей" % (count)
+                self.action_state = "Ожидает согласования от %s пользователей: %s" % (count, matching.mapped('partner_id.name'))
             else:
                 self.action_state = "Внутреннее согласование завершено. Необходимо перейти к следующему этапу"
                 self.is_end_state = True
@@ -413,8 +418,8 @@ class CdsRequestMatching(models.Model):
     is_send = fields.Boolean(string='Отправлена?', readonly=True, copy=False)
     is_action_state = fields.Boolean(string='Действия для пользователя', compute="_get_action_state_user", help="Признак требуется ли действие от       пользователя на текущем статусе заявки, True - действие требуется, False - действий не требуется")
 
-
     request_id = fields.Many2one('cds.request', ondelete='cascade', string=u"Заявка", required=True)
+
 
     @api.depends("partner_id")
     def _get_name(self):
@@ -427,6 +432,7 @@ class CdsRequestMatching(models.Model):
                     else:
                         record.is_local = False
                         record.name = record.partner_id.name
+
 
     @api.depends("state")
     def _change_status(self):
@@ -460,6 +466,7 @@ class CdsRequestMatching(models.Model):
         self.sudo().user_id = user.id
         self.sudo().state = 'agreed'
         self.sudo().date_state = datetime.now()
+
 
     def action_user_failure(self):
         """Действие Отказать в форме строки согласующих заявки"""
