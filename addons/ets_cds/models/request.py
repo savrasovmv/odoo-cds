@@ -37,6 +37,9 @@ class CdsRequest(models.Model):
     date_work_start = fields.Datetime(string='Дата начала работ')
     date_work_end = fields.Datetime(string='Дата окончания работ')
 
+    is_extend = fields.Boolean('Продлена')
+    date_extend = fields.Datetime('Дата продления')
+
     energy_complex_id = fields.Many2one('cds.energy_complex', string='Энергокомплекс')
     location_id = fields.Many2one('cds.location', string='Местонахождение', related='energy_complex_id.location_id', store=True)
     company_partner_id = fields.Many2one('res.partner', string='Заказчик', related='energy_complex_id.company_partner_id', store=True)
@@ -282,8 +285,8 @@ class CdsRequest(models.Model):
             line.date_state = False
             line.is_send = False
         # partner_ids=[line.partner_id.id for line in self.matching_ids]
-        self.message_post(body="Тестовая отправка", partner_ids=[9])
-        print("+++++++++++++++")
+        # self.message_post(body="Тестовая отправка", partner_ids=[9])
+        # print("+++++++++++++++")
 
     # def _notify_get_groups(self, msg_vals=None):
     #     """ Handle Trip Manager recipients that can cancel the trip at the last
@@ -369,13 +372,20 @@ class CdsRequest(models.Model):
             matching_list = self.env['cds.request_matching'].search([
                 ('request_id', '=', record.id),
                 ('is_local', '=', True),
+                '|',
+                ('state', '=', 'matching'),
+                ('state', '=', 'await'),
             ])
 
             if len(matching_list)>0:
+                # email_values={
+                #    'fff': "sdfsdfsdf",
+                # }
+                # record.with_context(email_values).message_post_with_template(
                 record.message_post_with_template(
                     template.id, composition_mode='comment',
                     model='cds.request', res_id=record.id,
-                    partner_ids=[line.partner_id.id for line in self.matching_ids]
+                    partner_ids=[line.partner_id.id for line in self.matching_ids],
                     # email_layout_xmlid='mail.mail_notification_light',
                 )
             # email_to = record.get_registration_email()
@@ -417,7 +427,12 @@ class CdsRequestMatching(models.Model):
     date_state = fields.Datetime(string='Дата отметки', copy=False, compute="_change_status", store=True)
     is_send = fields.Boolean(string='Отправлена?', readonly=True, copy=False)
     is_action_state = fields.Boolean(string='Действия для пользователя', compute="_get_action_state_user", help="Признак требуется ли действие от       пользователя на текущем статусе заявки, True - действие требуется, False - действий не требуется")
-
+    matching_method = fields.Selection(selection=[
+            ('self', 'Лично'), 
+            ('tel', 'По телефону'), 
+            ('email', 'По email'), 
+        ], string="Метод согласования ", default='', copy=False
+    )
     request_id = fields.Many2one('cds.request', ondelete='cascade', string=u"Заявка", required=True)
 
 

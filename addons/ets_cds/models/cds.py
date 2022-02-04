@@ -71,7 +71,7 @@ class CdsEnergyComplex(models.Model):
     # attachment_ids = fields.Many2many('ir.attachment', 'cds_energy_complex_ir_attachments_rel',
     #     'energy_complex_id', 'attachment_id', string='Вложения')
 
-    user_id = fields.Many2one('res.users', string='Ответственный')
+    user_ids = fields.Many2many('res.users', string='Ответственные')
 
     matching_ids = fields.One2many('cds.energy_complex_matching', 'energy_complex_id', string=u"Строки Согласующие")
     request_ids = fields.One2many('cds.request', 'energy_complex_id', string=u"Строки Заявки")

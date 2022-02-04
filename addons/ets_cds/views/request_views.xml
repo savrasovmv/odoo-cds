@@ -169,6 +169,7 @@
                                         <field name="date_work_end" nolabel="1" class="oe_inline" />
                                     
                                     </div>
+                                    
 
                                     <label for="date_turn_off" string="Факт"/>
                                     <div class="o_row">
@@ -180,10 +181,15 @@
                                     </div>
                                     
                                 </group>
+                                <group string="Продление">
+                                    <field name="is_extend"/>
+                                    <field name="date_extend" attrs="{'invisible': [('is_extend', '=', False)]}"/>
+                                    
+                                </group>
                             </group>
                             <group>
-                                <field name="work_name" />
-                                <field name="description_mode"/>
+                                <field name="work_name" widget="text"/>
+                                <field name="description_mode" widget="text"/>
                             </group>
 
                             <group string="Комментарии">
@@ -214,34 +220,6 @@
                             </group>
                             <field name="matching_ids">
                                 <tree editable="botton">
-                                <!-- <button 
-                                    name="action_user_agreed" 
-                                    string="" 
-                                    icon="fa-check-square-o" 
-                                    type="object" 
-                                    class="btn-success"
-                                    attrs="{'invisible': ['|',('is_action_state', '=', False), ('state', '=', 'await')]}"
-                            
-                                    groups="ets_cds.group_cds_manager_matching, ets_cds.group_cds_admin"
-                                    />
-                                <button 
-                                    name="action_user_failure" 
-                                    string="" 
-                                    icon="fa-ban" 
-                                    type="object" 
-                                    class="btn-danger"
-                                     attrs="{'invisible': ['|',('is_action_state', '=', False), ('state', '=', 'await')]}"
-                                    groups="ets_cds.group_cds_manager_matching, ets_cds.group_cds_admin"
-                                    />
-                                <button 
-                                    name="action_user_clear" 
-                                    string="" 
-                                    icon="fa-history" 
-                                    type="object" 
-                                    class="btn-warning"
-                                    attrs="{'invisible': [('is_action_state', '=', True), ('user_id', '=', False)]}"
-                                    groups="ets_cds.group_cds_manager_matching, ets_cds.group_cds_admin"
-                                    /> -->
                                     <field name="partner_id" options='{"no_create": 1, "no_create_edit": 1}'/>
                                     <field name="function"/>
                                     <field name="is_local" string="Внут."/>
@@ -254,6 +232,7 @@
                                     <field name="user_id"/>
                                     <field name="date_state"/>
                                     <field name="is_send"/>
+                                    <field name="matching_method"/>
                                     <!-- <field name="is_action_state" /> -->
 
                                 </tree>
@@ -285,7 +264,7 @@
                 <field name="name"/>
                 <field name="energy_complex_id"/>
                 <field name="object_id"/>
-                <field name="state" decoration-danger="state=='failure'"/>
+                <field name="state" decoration-danger="state=='failure'" widget="badge"/>
                 <field name="partner_id"/>
             </tree>
         </field>

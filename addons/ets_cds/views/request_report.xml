@@ -223,6 +223,12 @@
                                             </div>
                                              /
                                         <t t-esc="line.partner_id.print_name"/>
+                                        <t t-if="line.matching_method!='self' and line.matching_method!=''">
+                                            <br/>
+                                            <em>
+                                                <span t-field="line.matching_method"/>
+                                            </em>
+                                        </t>
                                         </div>
                                         <!-- <div class="sig-main">
                                             <div class="sig-content">

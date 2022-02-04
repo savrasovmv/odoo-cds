@@ -53,21 +53,21 @@
         <record model="ir.rule" id="cds_rule_energy_complex_view_only_self">
             <field name="name">Исполнитель видит только свои ЭК</field>
             <field name="model_id" ref="model_cds_energy_complex"/>
-            <field name="domain_force">[('user_id', '=', user.id)]</field>
+            <field name="domain_force">[('user_ids', 'in', [user.id])]</field>
             <field name="groups" eval="[(4, ref('group_cds_executor'))]"/>
         </record>
 
         <record model="ir.rule" id="cds_rule_energy_complex_object_view_only_self">
             <field name="name">Исполнитель видит только свои Объекты ЭК</field>
             <field name="model_id" ref="model_cds_energy_complex_object"/>
-            <field name="domain_force">[('energy_complex_id.user_id', '=', user.id)]</field>
+            <field name="domain_force">[('energy_complex_id.user_ids', 'in', [user.id])]</field>
             <field name="groups" eval="[(4, ref('group_cds_executor'))]"/>
         </record>
 
         <record model="ir.rule" id="cds_rule_request_view_only_self">
-            <field name="name">Исполнитель видит только свои Заявки</field>
+            <field name="name">Исполнитель видит только Заявки по ЭК где он ответственный</field>
             <field name="model_id" ref="model_cds_request"/>
-            <field name="domain_force">[('user_id', '=', user.id)]</field>
+            <field name="domain_force">['|', ('user_id', '=', user.id), ('energy_complex_id.user_ids', 'in', [user.id])]</field>
             <field name="groups" eval="[(4, ref('group_cds_executor'))]"/>
         </record>
 
