@@ -35,5 +35,41 @@
 
             </field>
         </record>
+
+
+
+
+
+
+
+        <record id="mail_template_request_notify_finish" model="mail.template">
+            <field name="name">Заявки: Напоминание об окончании</field>
+            <field name="model_id" ref="ets_cds.model_cds_request"/>
+            <field name="subject">ЦДС Напоминание об окончании Заявка ${object.name} от ${object.date}  ${object.energy_complex_id.name} </field>
+            <field name="email_from">ЦДС ${object.company_id.email}</field>
+            <field name="auto_delete" eval="True"/>
+            <field name="body_html" type="html">
+
+<div style="margin: 0px; padding: 0px;">
+
+    <h4 style="Margin:20px 10px 10px 10px;font-family: Arial;">Здравствуйте!</h4>
+    
+    <p style="Margin:10px 10px 10px 10px;line-height: 28px; font-size: 14px; font-family: Arial;">
+        Необходимо уточнить о ходе выполнении Заявки ${object.name} от ${object.date} по энергокомплексу ${object.energy_complex_id.name}<br/>
+        Объект:  ${object.object_id.name}<br/>
+        Местонахождение:  ${object.location_id.name}<br/>
+        Вид работ:  ${object.mode}<br/>
+
+        Наименование работ:  ${object.work_name}<br/>
+        Начало работ:  ${object.date_work_start}<br/>
+        Окончание работ:  ${object.date_work_start}<br/>
+        Ответственный:  ${object.partner_id.name} ${object.function}<br/>
+        Контакты:  ${object.partner_id.mobile} ${object.partner_id.email}<br/>
+
+    </p>
+</div>
+
+            </field>
+        </record>
     </data>
 </odoo>

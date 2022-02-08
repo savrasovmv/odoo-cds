@@ -45,6 +45,7 @@
         'views/request_report.xml',
         'data/inherit_mail_data.xml',
         'data/mail_data.xml',
+        'data/activity_type.xml',
         'security/cds_security.xml',
         'security/ir.model.access.csv',
         'views/menu.xml',

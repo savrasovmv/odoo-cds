@@ -11,9 +11,13 @@
                             name="action_start" 
                             string="Начать согласование" 
                             type="object" 
+                            class="btn-primary"
                             attrs="{'invisible': [('state', '!=', 'draft')]}"
-                            groups="ets_cds.group_cds_dispetcher,ets_cds.group_cds_executor"
+                            groups="ets_cds.group_cds_controller_request"
                             />
+
+                    
+
                     <button 
                             name="action_user_agreed" 
                             string="Согласовать" 
@@ -28,6 +32,14 @@
                             type="object" 
                             attrs="{'invisible': [('is_action_state', '=', False)]}"
                             />
+
+                    <button 
+                            name="action_send_mail_local_matching" 
+                            string="Отправить на согласование по e-mail" 
+                            attrs="{'invisible': ['|', '&amp;', ('state', '=', 'matching_in'),('is_end_state', '=', True), ('state', '!=', 'matching_in') ]}"
+                            type="object" 
+                            groups="ets_cds.group_cds_controller_request"
+                            />
                     
                     <button 
                             name="action_send_out_matching" 
@@ -37,13 +49,31 @@
                             attrs="{'invisible': ['|', ('is_end_state', '=', False), ('state', '!=', 'matching_in')]}"
                             groups="ets_cds.group_cds_dispetcher"
                             />
+
+                    <button 
+                            name="action_end_matching" 
+                            string="Согласование завершено" 
+                            class="btn-primary"
+                            type="object" 
+                            attrs="{'invisible': ['|', '&amp;', ('state', '=', 'matching_out'),('is_end_state', '=', False), ('state', '!=', 'matching_out') ]}"
+                            groups="ets_cds.group_cds_controller_request"
+                            />
+
+                    <button 
+                            name="action_end_matching_failure" 
+                            string="Не согласованно" 
+                            type="object" 
+                            attrs="{'invisible': ['|', '&amp;', ('state', '=', 'matching_out'),('is_end_state', '=', False), ('state', '!=', 'matching_out') ]}"
+                            groups="ets_cds.group_cds_controller_request"
+                            />
+
                     <button 
                             name="action_start_work" 
                             string="Начать выполнение работ" 
                             class="btn-primary"
                             type="object" 
                             attrs="{'invisible': ['|', ('is_end_state', '=', False), ('state', '!=', 'agreed')]}"
-                            groups="ets_cds.group_cds_dispetcher"
+                            groups="ets_cds.group_cds_controller_request"
                             />
                     <button 
                             name="action_extend_work" 
@@ -59,7 +89,7 @@
                             class="btn-primary"
                             type="object" 
                             attrs="{'invisible': [('state', '!=', 'open'), ('state', '!=', 'extend')]}"
-                            groups="ets_cds.group_cds_dispetcher"
+                            groups="ets_cds.group_cds_controller_request"
                             />
 
                     <button 
@@ -68,17 +98,11 @@
                            
                             type="object" 
                             attrs="{'invisible': [('state', '!=', 'failure'), ('state', '!=', 'draft')]}"
-                            groups="ets_cds.group_cds_dispetcher"
+                            groups="ets_cds.group_cds_controller_request"
                             />
 
 
-                    <button 
-                            name="action_send_mail_local_matching" 
-                            string="Отправить на согласование по e-mail" 
-                           
-                            type="object" 
-                            groups="ets_cds.group_cds_dispetcher"
-                            />
+                    
                     <field name="state" widget="statusbar" options="{'clickable': '1', 'fold_field': 'fold'}"></field>   
                 </header>
                 <sheet>
@@ -89,7 +113,7 @@
                         class="alert alert-success text-center o_form_header"  
                         role="status" 
                         attrs="{'invisible': [('is_end_state', '=', False)]}" 
-                        groups="ets_cds.group_cds_dispetcher, ets_cds.group_cds_executor"
+                        groups="ets_cds.group_cds_controller_request"
                         >
                         <field name="action_state" />
                     </div>
@@ -98,7 +122,7 @@
                         class="alert alert-info text-center o_form_header" 
                         role="status" 
                         attrs="{'invisible': [('is_end_state', '=', True)]}"
-                        groups="ets_cds.group_cds_dispetcher, ets_cds.group_cds_executor"
+                        groups="ets_cds.group_cds_controller_request"
                         >
                         <field name="action_state" />
                     </div>
@@ -106,7 +130,7 @@
                         class="alert alert-warning text-center o_form_header" 
                         role="status" 
                         attrs="{'invisible': [('state', '!=', 'open')]}"
-                        groups="ets_cds.group_cds_dispetcher, ets_cds.group_cds_executor"
+                        groups="ets_cds.group_cds_controller_request"
                         >
                         <field name="action_state" />
                     </div>

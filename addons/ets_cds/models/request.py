@@ -159,8 +159,10 @@ class CdsRequest(models.Model):
             matching = self.env['cds.request_matching'].search([
                 ('request_id', '=', self.id),
                 ('is_local', '=', True),
-                ('state', '=', 'matching'),
                 ('user_id', '=', False),
+                '|',
+                ('state', '=', 'await'),
+                ('state', '=', 'matching'),
             ])
             count = len(matching)
             if count>0: 
@@ -173,6 +175,8 @@ class CdsRequest(models.Model):
             count = self.env['cds.request_matching'].search_count([
                 ('request_id', '=', self.id),
                 ('is_local', '=', False),
+                '|',
+                ('state', '=', 'await'),
                 ('state', '=', 'matching'),
                 ('user_id', '=', False),
             ])
@@ -269,6 +273,24 @@ class CdsRequest(models.Model):
                 line.sudo().date_state = datetime.now()
 
 
+    def create_activities(self):
+        model_id = self.env['ir.model']._get(self._name).id
+        activity_type_id = self.env.ref("ets_cds.mail_activity_data_cds_request_finish", raise_if_not_found=False)
+        activities = self.env['mail.activity']
+        for record in self:
+            create_vals = {
+                'activity_type_id': activity_type_id and activity_type_id.id,
+                'summary': activity_type_id.summary,
+                'automated': True,
+                'note': activity_type_id.default_description,
+                # 'date_deadline': date_deadline,
+                'res_model_id': activity_type_id.res_model_id.id,
+                'res_id': record.id,
+                'user_id': activity_type_id.default_user_id.id or self.env.uid
+            }
+            self.env['mail.activity'].create(create_vals)
+
+
     ############################################
     # Действия по изменению статуса Заявки
     ############################################
@@ -337,6 +359,7 @@ class CdsRequest(models.Model):
         for record in self:
             record.state = 'open'
             record.date_turn_off = datetime.now()
+            record.create_activities()
     
     def action_extend_work(self):
         """ Действие Продлить выполнения работ.
@@ -359,6 +382,40 @@ class CdsRequest(models.Model):
         
         for record in self:
             record.state = 'cancel'
+
+
+    def action_end_matching(self):
+        """ Действие Согласование завершено.
+            Устанавливает в статус Согласовано
+            Отправляет уведомление исполнителю о согласовании заявки
+            
+            """
+
+
+        
+        for record in self:
+            record.state = 'agreed'
+            body = """
+                    Заявка №%s от %s <b>согласована</b>. <br/> 
+                    Объект %s <br/> 
+                    Дата начала работ: %s <br/>
+                    <br/>
+                    
+            """  % (record.name, record.date, record.object_id.name, record.date_work_start or '')
+            record.message_post(body=body, partner_ids=[record.partner_id.id])
+    
+
+
+    def action_end_matching_failure(self):
+        """ Действие Заказчик не согласовал.
+            Устанавливает в статус Не согласовано
+            Отправляет уведомление исполнителю о согласовании заявки
+            
+            """
+        
+        for record in self:
+            record.state = 'failure'
+            record.message_post(body="Заявка не согласована", partner_ids=[record.partner_id.id])
         
         
 
