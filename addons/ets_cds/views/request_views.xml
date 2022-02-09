@@ -139,6 +139,7 @@
                         <!-- <field name="state" invisible="1"/> -->
                         <field name="is_end_state" />
                         <field name="is_time_up" />
+                        <field name="color" />
                     </group>
                     <div class="oe_title">
                         <h3>
@@ -283,13 +284,14 @@
         <field name="name">cds.request.tree</field>
         <field name="model">cds.request</field>
         <field name="arch" type="xml">
-            <tree >
+            <tree decoration-success="state=='close'" decoration-muted="state=='cancel'" decoration-info="state in ['open', 'extend']">
                 <field name="date"/>
                 <field name="name"/>
                 <field name="energy_complex_id"/>
                 <field name="object_id"/>
-                <field name="state" decoration-danger="state=='failure'" widget="badge"/>
+                <field name="state" decoration-danger="state=='failure'" decoration-success="is_end_state==True and not state in ['cancel', 'close']" widget="badge"/>
                 <field name="partner_id"/>
+                <field name="is_end_state"/>
             </tree>
         </field>
     </record>

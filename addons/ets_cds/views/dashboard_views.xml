@@ -12,21 +12,36 @@
                 <field name="name" />
                 <field name="energy_complex_id" />
                 <field name="object_id" />
+                <field name="color"/>
                 <progressbar field="state" colors='{"failure": "success", "agreed": "green", "open": "muted"}'/>
                 <templates>
                     <t t-name="kanban-box">
-                        <div t-attf-class="oe_kanban_global_click">
-                            <!-- <div class="oe_kanban_details">  -->
-                                <div class="o_row o_primary font-weight-bold">
+                        <div t-attf-class="#{kanban_color(record.color.raw_value)} oe_kanban_global_click ">
+                            
+                            <div class="oe_kanban_content">
+                                <div class="o_kanban_record_title">
+                                    <strong>
+                                        №
+                                        <field name="name" /> 
+                                        от 
+                                        <field name="date" />  
+                                    </strong>
+                                </div>
+                                <div class="o_kanban_record_subtitle">
+                                    <field name="energy_complex_id" />
+                                    <field name="object_id" />
+                                </div>
+
+                                <!-- <div class="o_row o_primary font-weight-bold">
                                     №
                                     <field name="name" /> 
                                     от 
                                     <field name="date" /> 
                                 </div>
                                 <field name="energy_complex_id" />
-                                <field name="object_id" />
+                                <field name="object_id" /> -->
                         
-                            <!-- </div> -->
+                            </div>
                         </div>
                     </t>
                 </templates>

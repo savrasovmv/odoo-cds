@@ -11,6 +11,7 @@ class CdsRequest(models.Model):
 
     _name = "cds.request"
     _description = "Заявки"
+    _order = "date desc"
     _inherit = ['mail.thread.cc', 'mail.activity.mixin']
 
     name = fields.Char('Номер', copy=False, readonly=True, default=lambda x: _('New'))
@@ -89,9 +90,10 @@ class CdsRequest(models.Model):
     is_action_state = fields.Boolean(string='Действия для пользователя', compute="_get_action_state_user", help="Признак тредуется ли действие от пользователя на текущем статусе заявки, True - действие требуется, False - действий не требуется")
 
     action_state = fields.Char(string='Состояние', compute="_get_action_state", help="Текстовое описание состояния в текущем статусе")
-    is_end_state = fields.Boolean(string='Этап выполнен?', compute="_get_action_state", help="Если истина, то этап завершен и требуется дальнейшее действие")
+    is_end_state = fields.Boolean(string='Этап выполнен?', compute="_get_action_state", store=True, help="Если истина, то этап завершен и требуется дальнейшее действие")
     is_time_up = fields.Boolean(string='Время истекло?', compute="_get_time_up", help="Если истина, то текущее время больше чем Дата окончания работ")
 
+    color = fields.Integer('Цвет', default=0, compute="_get_color")
     
     @api.model
     def _expand_groups(self, states, domain, order):
@@ -143,74 +145,81 @@ class CdsRequest(models.Model):
                 if (record.date_work_end < datetime.now() and record.state=="open" and record.date_turn_on == False) or (record.date_turn_on != False and record.date_work_end<record.date_turn_on):
                     record.is_time_up = True
                 
+    def _get_color(self):
+        """Подсветка состояния заявки"""
 
+        for record in self:
+            record.color = 0
+            if record.is_end_state:
+                record.color = 10
 
     @api.depends('matching_ids')
-    def _get_action_state(self):
+    def _get_action_state(records):
         """Отображает информацию в заголовке заявки, по текущему состоянию и необходимых действиях"""
 
-        self.ensure_one()
-        self.action_state = self.state
-        self.is_end_state = False
+        # self.ensure_one()
+        for self in records:
+            self.action_state = self.state
+            self.is_end_state = False
 
-        if self.state == 'draft':
-            self.action_state = "Черновик. Нажмите Начать, что бы зпустить процесс согласования"
-        if self.state == 'matching_in':
-            matching = self.env['cds.request_matching'].search([
-                ('request_id', '=', self.id),
-                ('is_local', '=', True),
-                ('user_id', '=', False),
-                '|',
-                ('state', '=', 'await'),
-                ('state', '=', 'matching'),
-            ])
-            count = len(matching)
-            if count>0: 
-                self.action_state = "Ожидает согласования от %s пользователей: %s" % (count, matching.mapped('partner_id.name'))
-            else:
-                self.action_state = "Внутреннее согласование завершено. Необходимо перейти к следующему этапу"
+            if self.state == 'draft':
+                self.action_state = "Черновик. Нажмите Начать, что бы зпустить процесс согласования"
+            if self.state == 'matching_in':
+                matching = self.env['cds.request_matching'].search([
+                    ('request_id', '=', self.id),
+                    ('is_local', '=', True),
+                    ('user_id', '=', False),
+                    '|',
+                    ('state', '=', 'await'),
+                    ('state', '=', 'matching'),
+                ])
+                count = len(matching)
+                if count>0: 
+                    self.action_state = "Ожидает согласования от %s пользователей: %s" % (count, matching.mapped('partner_id.name'))
+                else:
+                    self.action_state = "Внутреннее согласование завершено. Необходимо перейти к следующему этапу"
+                    self.is_end_state = True
+            
+            if self.state == 'matching_out':
+                count = self.env['cds.request_matching'].search_count([
+                    ('request_id', '=', self.id),
+                    ('is_local', '=', False),
+                    '|',
+                    ('state', '=', 'await'),
+                    ('state', '=', 'matching'),
+                    ('user_id', '=', False),
+                ])
+                if count>0: 
+                    self.action_state = "Ожидает согласования от %s заказчика" % (count)
+                else:
+                    self.action_state = "Согласование с заказчиком завершено. Необходимо перейти к следующему этапу"
+                    self.is_end_state = True
+
+            if self.state == 'agreed':
+                self.action_state = "Заявка согласована. Ожидания начала работ"
                 self.is_end_state = True
-        
-        if self.state == 'matching_out':
-            count = self.env['cds.request_matching'].search_count([
-                ('request_id', '=', self.id),
-                ('is_local', '=', False),
-                '|',
-                ('state', '=', 'await'),
-                ('state', '=', 'matching'),
-                ('user_id', '=', False),
-            ])
-            if count>0: 
-                self.action_state = "Ожидает согласования от %s заказчика" % (count)
-            else:
-                self.action_state = "Согласование с заказчиком завершено. Необходимо перейти к следующему этапу"
+            
+            if self.state == 'open':
+                if self.is_time_up:
+                    self.action_state = "Заявка открыта. Время истекло. Продлите время выполнения заявку"
+                    self.is_end_state = True
+                else:
+                    self.action_state = "Заявка открыта"
+            
+            if self.state == 'extend':
+                self.action_state = "Заявка продлена"
+            
+            if self.state == 'close':
+                self.action_state = "Заявка закрыта"
                 self.is_end_state = True
 
-        if self.state == 'agreed':
-            self.action_state = "Заявка согласована. Ожидания начала работ"
-            self.is_end_state = True
-        
-        if self.state == 'open':
-            if self.is_time_up:
-                self.action_state = "Заявка открыта. Время истекло. Продлите время выполнения заявку"
+            if self.state == 'failure':
+                self.action_state = "Заявка Не согласована"
                 self.is_end_state = True
-            else:
-                self.action_state = "Заявка открыта"
-        
-        if self.state == 'extend':
-            self.action_state = "Заявка продлена"
-        
-        if self.state == 'close':
-            self.action_state = "Заявка закрыта"
-            self.is_end_state = True
-
-        if self.state == 'failure':
-            self.action_state = "Заявка Не согласована"
-            self.is_end_state = True
-        
-        if self.state == 'cancel':
-            self.action_state = "Заявка Отменена"
-            self.is_end_state = True
+            
+            if self.state == 'cancel':
+                self.action_state = "Заявка Отменена"
+                self.is_end_state = True
 
 
 
