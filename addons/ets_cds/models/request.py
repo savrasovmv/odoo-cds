@@ -139,6 +139,7 @@ class CdsRequest(models.Model):
 
 
     def _get_time_up(self):
+        """Расчет закончилось ли время выполнения заявки"""
         for record in self:
             record.is_time_up = False
             if record.date_work_end:
@@ -283,21 +284,58 @@ class CdsRequest(models.Model):
 
 
     def create_activities(self):
-        model_id = self.env['ir.model']._get(self._name).id
+        request_is_notify_time_off = self.env['ir.config_parameter'].sudo().get_param('request_is_notify_time_off')
+        request_dispetcher_user_id = self.env['ir.config_parameter'].sudo().get_param('request_dispetcher_user_id')
+
+        if request_is_notify_time_off and request_dispetcher_user_id!='':
+            # dispetcher_user_id = self.env['res.users'].browse(int(request_dispetcher_user_id))
+            # model_id = self.env['ir.model']._get(self._name).id
+            activity_type_id = self.env.ref("ets_cds.mail_activity_data_cds_request_finish", raise_if_not_found=False)
+            if not activity_type_id:
+                return False
+            # activities = self.env['mail.activity']
+            for record in self:
+                create_vals = {
+                    'activity_type_id': activity_type_id and activity_type_id.id,
+                    'summary': activity_type_id.summary,
+                    'automated': True,
+                    'note': activity_type_id.default_description,
+                    # 'date_deadline': date_deadline,
+                    'res_model_id': activity_type_id.res_model_id.id,
+                    'res_id': record.id,
+                    'user_id': int(request_dispetcher_user_id)
+                }
+                
+                self.env['mail.activity'].with_context({'mail_activity_quick_update': True}).create(create_vals)
+
+    def send_notify_time_off(self):
         activity_type_id = self.env.ref("ets_cds.mail_activity_data_cds_request_finish", raise_if_not_found=False)
-        activities = self.env['mail.activity']
-        for record in self:
-            create_vals = {
-                'activity_type_id': activity_type_id and activity_type_id.id,
-                'summary': activity_type_id.summary,
-                'automated': True,
-                'note': activity_type_id.default_description,
-                # 'date_deadline': date_deadline,
-                'res_model_id': activity_type_id.res_model_id.id,
-                'res_id': record.id,
-                'user_id': activity_type_id.default_user_id.id or self.env.uid
-            }
-            self.env['mail.activity'].create(create_vals)
+        domain = [
+            '&', '&', #'&',
+            ('res_model', '=', self._name),
+            ('res_id', 'in', self.ids),
+            ('activity_type_id', '=', activity_type_id.id)
+        ]
+            # ('automated', '=', True),
+        act = self.env['mail.activity'].search(domain)
+        print("++++++ act", act)
+        print("++++++ activity_ids", self.activity_ids)
+        template = self.env.ref('ets_cds.mail_template_request_notify_finish')
+        for line in act:
+
+            print("+++++line", self.env['mail.activity'].search_read([('id', '=', line.id)]))
+            partner_ids=[line.user_id.partner_id.id,]
+            print("+++++partner_ids", partner_ids)
+            mess = self.message_post_with_template(
+                    template.id, composition_mode='comment',
+                    model='cds.request', res_id=line.res_id,
+                    partner_ids=[line.user_id.partner_id.id,],
+                    # email_layout_xmlid='mail.mail_notification_light',
+                )
+            print("++++++mess", mess)
+            line.action_done()
+        # act.action_notify()
+        # self.activity_send_mail(activity_type_id.mail_template_ids[0].id)
 
 
     ############################################

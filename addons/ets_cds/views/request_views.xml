@@ -102,6 +102,14 @@
                             />
 
 
+                    <button 
+                            name="send_notify_time_off" 
+                            string="Test" 
+                           
+                            type="object" 
+                            />
+
+
                     
                     <field name="state" widget="statusbar" options="{'clickable': '1', 'fold_field': 'fold'}"></field>   
                 </header>

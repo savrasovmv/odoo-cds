@@ -43,6 +43,7 @@
         'views/cds_sequence_data.xml',
         'views/paperformat.xml',
         'views/request_report.xml',
+        'views/settings_views.xml',
         'data/inherit_mail_data.xml',
         'data/mail_data.xml',
         'data/activity_type.xml',
