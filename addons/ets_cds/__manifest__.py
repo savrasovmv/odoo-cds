@@ -47,6 +47,7 @@
         'data/inherit_mail_data.xml',
         'data/mail_data.xml',
         'data/activity_type.xml',
+        'cron/cron_request_notify_views.xml',
         'security/cds_security.xml',
         'security/ir.model.access.csv',
         'views/menu.xml',

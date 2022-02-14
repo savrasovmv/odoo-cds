@@ -1,8 +1,9 @@
 from odoo import fields, models, api, _
+from odoo.exceptions import UserError, ValidationError
 from odoo import tools
 from odoo.tools import html2plaintext
 import base64
-from datetime import datetime
+from datetime import datetime, timedelta
 
 
 
@@ -94,6 +95,10 @@ class CdsRequest(models.Model):
     is_time_up = fields.Boolean(string='Время истекло?', compute="_get_time_up", help="Если истина, то текущее время больше чем Дата окончания работ")
 
     color = fields.Integer('Цвет', default=0, compute="_get_color")
+
+    is_notify_time_off = fields.Boolean('Уведомление об уточнении статуса заявки, отправлено?')
+    date_notify_time_off = fields.Datetime('Во сколько уведомить о проверке статуса заявки', compute="_get_date_notify_time_off", store=True)
+    is_notify_time_up = fields.Boolean('Уведомление о необходимости закрыть заявку, отправлено?')
     
     @api.model
     def _expand_groups(self, states, domain, order):
@@ -145,7 +150,38 @@ class CdsRequest(models.Model):
             if record.date_work_end:
                 if (record.date_work_end < datetime.now() and record.state=="open" and record.date_turn_on == False) or (record.date_turn_on != False and record.date_work_end<record.date_turn_on):
                     record.is_time_up = True
+
+    @api.depends('date_work_end', 'date_extend')
+    def _get_date_notify_time_off(self):
+        """ Установка даты и времени когда напомнить о скором окончании заявки
+            Дата устанавливается как Время окончания заявки (или время продления) минус Часов за сколько напомнить из системных параметров
+        """
+
+        request_hour_notify_time_off = self.env['ir.config_parameter'].sudo().get_param('request_hour_notify_time_off')
+        hour = int(request_hour_notify_time_off)
+        for record in self:
+            if record.is_extend and record.date_extend:
+                record.date_notify_time_off = record.date_extend - timedelta(hours=hour)
+            else:
+                record.date_notify_time_off = record.date_work_end - timedelta(hours=hour)
+            record.is_notify_time_off = False
+
+
+
+    @api.constrains('date_work_end', 'date_extend', 'date_turn_off', 'date_turn_on')
+    def _check_date_end(self):
+        """Проверка даты окончания (должна быть больше чем время начала)"""
+
+        for record in self:
+            if record.date_work_end < record.date_work_start:
+                raise ValidationError(_("Дата окончания должна быть больше чем дата начала"))
+            if record.is_extend and record.date_extend < record.date_work_end:
+                raise ValidationError(_("Дата продления должна быть больше чем дата окончания по плану"))
+            if record.date_turn_off > record.date_turn_on and record.date_turn_off and record.date_turn_on:
+                raise ValidationError(_("Дата включения не может быть меньше даты выключения"))
                 
+
+
     def _get_color(self):
         """Подсветка состояния заявки"""
 
@@ -153,6 +189,8 @@ class CdsRequest(models.Model):
             record.color = 0
             if record.is_end_state:
                 record.color = 10
+
+
 
     @api.depends('matching_ids')
     def _get_action_state(records):
@@ -270,6 +308,8 @@ class CdsRequest(models.Model):
                     line.sudo().state = 'agreed'
                     # line.sudo().date_state = datetime.now()
     
+
+
     def action_user_failure(self):
         """Действие Отказать в согласование в форме заявки"""
         self.ensure_one()
@@ -309,31 +349,112 @@ class CdsRequest(models.Model):
                 self.env['mail.activity'].with_context({'mail_activity_quick_update': True}).create(create_vals)
 
     def send_notify_time_off(self):
-        activity_type_id = self.env.ref("ets_cds.mail_activity_data_cds_request_finish", raise_if_not_found=False)
-        domain = [
-            '&', '&', #'&',
-            ('res_model', '=', self._name),
-            ('res_id', 'in', self.ids),
-            ('activity_type_id', '=', activity_type_id.id)
-        ]
-            # ('automated', '=', True),
-        act = self.env['mail.activity'].search(domain)
-        print("++++++ act", act)
-        print("++++++ activity_ids", self.activity_ids)
-        template = self.env.ref('ets_cds.mail_template_request_notify_finish')
-        for line in act:
+        """Отправить уведомление о необходимости проверить ход работ.
+            Уведомление отправляется диспетчеру за N часов установленных в параметрах
+        """
+        request_is_notify_time_off = self.env['ir.config_parameter'].sudo().get_param('request_is_notify_time_off')
+        
+        if not request_is_notify_time_off:
+            return False
+        
+        notify_list = self.search([
+            ('is_notify_time_off', '=', False),
+            ('date_notify_time_off', '<', datetime.now()),
+            '|',
+            ('state', '=', 'open'),
+            ('state', '=', 'extend'),
+        ])
 
-            print("+++++line", self.env['mail.activity'].search_read([('id', '=', line.id)]))
-            partner_ids=[line.user_id.partner_id.id,]
-            print("+++++partner_ids", partner_ids)
-            mess = self.message_post_with_template(
+        if len(notify_list)==0:
+            return False
+
+        request_dispetcher_user_id = self.env['ir.config_parameter'].sudo().get_param('request_dispetcher_user_id')
+        dispetcher_user_id = self.env['res.users'].browse(int(request_dispetcher_user_id))
+        partner_ids = [dispetcher_user_id.partner_id.id,] if dispetcher_user_id.partner_id else []
+
+        template = self.env.ref('ets_cds.mail_template_request_notify_time_off')
+        for notify in notify_list:
+            notify.message_post_with_template(
                     template.id, composition_mode='comment',
-                    model='cds.request', res_id=line.res_id,
-                    partner_ids=[line.user_id.partner_id.id,],
-                    # email_layout_xmlid='mail.mail_notification_light',
+                    model='cds.request', res_id=notify.id,
+                    partner_ids=partner_ids,
                 )
-            print("++++++mess", mess)
-            line.action_done()
+            notify.is_notify_time_off = True
+
+
+
+    def send_notify_time_up(self):
+        """Отправить уведомление если время выполнения заявки истекло.
+            Уведомление отправляется диспетчеру и исполнителю
+        """
+        request_is_notify_time_up = self.env['ir.config_parameter'].sudo().get_param('request_is_notify_time_up')
+        
+        if not request_is_notify_time_up:
+            return False
+        
+        notify_list = self.search([
+            ('is_notify_time_up', '=', False),
+            '|', '&', 
+            ('is_extend', '=', True),
+            ('date_extend', '<', datetime.now()),
+            '&',
+            ('is_extend', '=', False),
+            ('date_work_end', '<', datetime.now()),
+            '|',
+            ('state', '=', 'open'),
+            ('state', '=', 'extend'),
+        ])
+
+        if len(notify_list)==0:
+            return False
+
+        request_dispetcher_user_id = self.env['ir.config_parameter'].sudo().get_param('request_dispetcher_user_id')
+        dispetcher_user_id = self.env['res.users'].browse(int(request_dispetcher_user_id))
+
+        template = self.env.ref('ets_cds.mail_template_request_notify_time_up')
+        for notify in notify_list:
+
+            list1 = [dispetcher_user_id.partner_id.id,] if dispetcher_user_id.partner_id else []
+            list2 = [notify.user_id.partner_id.id,] 
+            partner_ids = list(dict.fromkeys(list1+list2))
+            notify.message_post_with_template(
+                    template.id, composition_mode='comment',
+                    model='cds.request', res_id=notify.id,
+                    partner_ids=partner_ids,
+                )
+            notify.is_notify_time_up = True
+
+
+
+        # request_hour_notify_time_off = self.env['ir.config_parameter'].sudo().get_param('request_hour_notify_time_off')
+        # hour = int(request_hour_notify_time_off)
+        # # datetime.now()
+        # # time_off = 
+        # activity_type_id = self.env.ref("ets_cds.mail_activity_data_cds_request_finish", raise_if_not_found=False)
+        # domain = [
+        #     '&', '&', #'&',
+        #     ('res_model', '=', self._name),
+        #     ('res_id', 'in', self.ids),
+        #     ('activity_type_id', '=', activity_type_id.id)
+        # ]
+        #     # ('automated', '=', True),
+        # act = self.env['mail.activity'].search(domain)
+        # print("++++++ act", act)
+        # print("++++++ activity_ids", self.activity_ids)
+        # template = self.env.ref('ets_cds.mail_template_request_notify_finish')
+        # for line in act:
+
+        #     print("+++++line", self.env['mail.activity'].search_read([('id', '=', line.id)]))
+        #     partner_ids=[line.user_id.partner_id.id,]
+        #     print("+++++partner_ids", partner_ids)
+        #     mess = self.message_post_with_template(
+        #             template.id, composition_mode='comment',
+        #             model='cds.request', res_id=line.res_id,
+        #             partner_ids=[line.user_id.partner_id.id,],
+        #             # email_layout_xmlid='mail.mail_notification_light',
+        #         )
+        #     print("++++++mess", mess)
+        #     line.action_done()
         # act.action_notify()
         # self.activity_send_mail(activity_type_id.mail_template_ids[0].id)
 

@@ -38,7 +38,7 @@
                             <div class="o_setting_right_pane" id="request_is_notify_time_off">
                                 <label for="request_is_notify_time_off"/>
                                 <div class="text-muted">
-                                    Напоминать Диспетчеру об окончании заявки?
+                                    Будет отправлено уведомление Диспетчеру о скором истечении срока выполнения заявки. Для уточнения статуса выполнения.
                                 </div>
                                 <field name="request_is_notify_time_off" class="col-lg-2"/>
 
@@ -49,9 +49,21 @@
                             <div class="o_setting_right_pane" id="request_hour_notify_time_off">
                                 <label for="request_hour_notify_time_off"/>
                                 <div class="text-muted">
-                                    За сколько часов отправлять напоминание об окончании заявки
+                                    За сколько часов отправлять напоминание о скором окончании заявки
                                 </div>
                                 <field name="request_hour_notify_time_off" class="col-lg-2"/>
+
+                            </div>
+                        </div>
+
+                        <div class="col-lg-12 o_setting_box" id="ets_cds" attrs="{'invisible': [('request_is_notify_time_off', '=', False)]}">
+                            <div class="o_setting_right_pane" id="request_is_notify_time_up">
+                                <label for="request_is_notify_time_up"/>
+                                <div class="text-muted">
+                                    Если заявка открыта, а срок исполнения истек, отправить 
+                                    уведомление Диспетчеру и Исполнителю о необходимости закрыть или продлить заявку
+                                </div>
+                                <field name="request_is_notify_time_up" class="col-lg-2"/>
 
                             </div>
                         </div>

@@ -103,7 +103,7 @@
 
 
                     <button 
-                            name="send_notify_time_off" 
+                            name="send_notify_time_up" 
                             string="Test" 
                            
                             type="object" 
@@ -142,13 +142,7 @@
                         >
                         <field name="action_state" />
                     </div>
-                    <group>
-                        <field name="is_action_state"/>
-                        <!-- <field name="state" invisible="1"/> -->
-                        <field name="is_end_state" />
-                        <field name="is_time_up" />
-                        <field name="color" />
-                    </group>
+                    
                     <div class="oe_title">
                         <h3>
                         Заявка №
@@ -272,6 +266,18 @@
                                 
                             </field> 
 
+                        </page>
+
+                        <page string="Системные параметры" groups="base.group_erp_manager">
+                            <group>
+                                <field name="is_action_state"/>
+                                <field name="is_end_state" />
+                                <field name="is_time_up" />
+                                <field name="color" />
+                                <field name="is_notify_time_off"/>
+                                <field name="date_notify_time_off"/>
+                                <field name="is_notify_time_up"/>
+                            </group>
                         </page>
 
 
