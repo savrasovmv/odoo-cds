@@ -116,6 +116,15 @@ class CdsRequest(models.Model):
         if self.user_id:
             self.partner = self.user_id.partner_id
 
+    def get_mode_value(self):
+        """Возвращает текст выбранного Вида работ (mode)"""
+        s = {
+            'plan': 'Плановая',
+            'unplan': 'Внеплановая',
+            'crash': 'Аварийная',
+        }
+        return s[self.mode]
+
     def action_set_request_matching(self):
         """Заполнить согласующих из шаблона Энергокомплекса"""
         self.matching_ids.unlink()
@@ -558,9 +567,7 @@ class CdsRequest(models.Model):
             Отправляет уведомление исполнителю о согласовании заявки
             
             """
-
-
-        
+        print("+++++++action_end_matching")
         for record in self:
             record.state = 'agreed'
             body = """
@@ -570,7 +577,10 @@ class CdsRequest(models.Model):
                     <br/>
                     
             """  % (record.name, record.date, record.object_id.name, record.date_work_start or '')
-            record.message_post(body=body, partner_ids=[record.partner_id.id])
+
+            m = record.message_post(body=body, partner_ids=[record.partner_id.id])
+            print("+++++++m", m)
+            
     
 
 
@@ -590,29 +600,46 @@ class CdsRequest(models.Model):
         
     def action_send_mail_local_matching(self):
         """Отправляет письмо внутренним согласующим"""
+
         template = self.env.ref('ets_cds.mail_template_request_local_matching')
+
+        request_is_local_customer_agrees_last = self.env['ir.config_parameter'].sudo().get_param('request_is_local_customer_agrees_last')
+
         
         for record in self:
-
-            matching_list = self.env['cds.request_matching'].search([
-                ('request_id', '=', record.id),
-                ('is_local', '=', True),
-                '|',
-                ('state', '=', 'matching'),
-                ('state', '=', 'await'),
-            ])
-
-            if len(matching_list)>0:
-                # email_values={
-                #    'fff': "sdfsdfsdf",
-                # }
-                # record.with_context(email_values).message_post_with_template(
+            partner_ids = []
+            for line in record.matching_ids:
+                if line.is_local and (line.state=='matching' or line.state=='await'):
+                    partner_ids.append(line.partner_id.id)
+                
+            if len(partner_ids)>0:
                 record.message_post_with_template(
                     template.id, composition_mode='comment',
                     model='cds.request', res_id=record.id,
-                    partner_ids=[line.partner_id.id for line in self.matching_ids],
-                    # email_layout_xmlid='mail.mail_notification_light',
+                    partner_ids=partner_ids,
                 )
+
+            # matching_list = self.env['cds.request_matching'].search([
+            #     ('request_id', '=', record.id),
+            #     ('is_local', '=', True),
+            #     '|',
+            #     ('state', '=', 'matching'),
+            #     ('state', '=', 'await'),
+            # ])
+
+            # if len(matching_list)>0:
+            #     # email_values={
+            #     #    'fff': "sdfsdfsdf",
+            #     # }
+            #     # record.with_context(email_values).message_post_with_template(
+            #     partner_ids=[line.partner_id.id for line in record.matching_ids]
+            #     print("++++++++++ partner_ids", partner_ids)
+            #     record.message_post_with_template(
+            #         template.id, composition_mode='comment',
+            #         model='cds.request', res_id=record.id,
+            #         partner_ids=partner_ids,
+            #         # email_layout_xmlid='mail.mail_notification_light',
+            #     )
             # email_to = record.get_registration_email()
             
             # if email_to:

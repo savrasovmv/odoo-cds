@@ -69,6 +69,19 @@
                         </div>
 
 
+
+                        <div class="col-lg-12 o_setting_box" id="ets_cds" attrs="{'invisible': [('request_is_notify_time_off', '=', False)]}">
+                            <div class="o_setting_right_pane" id="request_is_local_customer_agrees_last">
+                                <label for="request_is_local_customer_agrees_last"/>
+                                <div class="text-muted">
+                                    Если заказчик это внутренний сотрудник, то при установке флага, он будет согласовывать последним на этапе согласования с заказчиком. Иначе согласование будет на этапе Внутреннее согласование. 
+                                </div>
+                                <field name="request_is_local_customer_agrees_last" class="col-lg-2"/>
+
+                            </div>
+                        </div>
+
+
                        
                         
 

@@ -15,6 +15,7 @@ class Settings(models.TransientModel):
     
     request_manager_user_id = fields.Many2one('res.users', string='Руководитель ЦДС')
 
+    request_is_local_customer_agrees_last = fields.Boolean(u'Внутренний заказчик согласует последним?', default=False)
     
     @api.model
     def get_values(self):
@@ -26,6 +27,7 @@ class Settings(models.TransientModel):
                 'request_is_notify_time_up': conf.get_param('request_is_notify_time_up'),
                 'request_dispetcher_user_id': int(conf.get_param('request_dispetcher_user_id')),
                 'request_manager_user_id': int(conf.get_param('request_manager_user_id')),
+                'request_is_local_customer_agrees_last': conf.get_param('request_is_local_customer_agrees_last'),
                 
         })
         return res
@@ -39,3 +41,4 @@ class Settings(models.TransientModel):
         conf.set_param('request_is_notify_time_up', int(self.request_is_notify_time_up))
         conf.set_param('request_dispetcher_user_id', int(self.request_dispetcher_user_id.id)  or False)
         conf.set_param('request_manager_user_id', int(self.request_manager_user_id.id)  or False)
+        conf.set_param('request_is_local_customer_agrees_last', self.request_is_local_customer_agrees_last)
