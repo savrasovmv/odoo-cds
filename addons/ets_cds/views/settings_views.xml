@@ -70,7 +70,7 @@
 
 
 
-                        <div class="col-lg-12 o_setting_box" id="ets_cds" attrs="{'invisible': [('request_is_notify_time_off', '=', False)]}">
+                        <!-- <div class="col-lg-12 o_setting_box" id="ets_cds" attrs="{'invisible': [('request_is_notify_time_off', '=', False)]}">
                             <div class="o_setting_right_pane" id="request_is_local_customer_agrees_last">
                                 <label for="request_is_local_customer_agrees_last"/>
                                 <div class="text-muted">
@@ -79,7 +79,7 @@
                                 <field name="request_is_local_customer_agrees_last" class="col-lg-2"/>
 
                             </div>
-                        </div>
+                        </div> -->
 
 
                        

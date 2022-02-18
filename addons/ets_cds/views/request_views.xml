@@ -114,13 +114,39 @@
                     <field name="state" widget="statusbar" options="{'clickable': '1', 'fold_field': 'fold'}"></field>   
                 </header>
                 <sheet>
-                    
-                                       
-                    
+
                     <div 
                         class="alert alert-success text-center o_form_header"  
                         role="status" 
-                        attrs="{'invisible': [('is_end_state', '=', False)]}" 
+                        attrs="{'invisible': [('color', '!=', 10)]}" 
+                        groups="ets_cds.group_cds_controller_request"
+                        >
+                        <field name="action_state" />
+                    </div>
+                    
+                    <div 
+                        class="alert alert-info text-center o_form_header" 
+                        role="status" 
+                        attrs="{'invisible': [('color', '!=', 4)]}"
+                        groups="ets_cds.group_cds_controller_request"
+                        >
+                        <field name="action_state" />
+                    </div>
+                    <div 
+                        class="alert alert-warning text-center o_form_header" 
+                        role="status" 
+                        attrs="{'invisible': [('color', '!=', 3)]}"
+                        groups="ets_cds.group_cds_controller_request"
+                        >
+                        <field name="action_state" />
+                    </div>
+
+                    
+                    
+                    <!-- <div 
+                        class="alert alert-success text-center o_form_header"  
+                        role="status" 
+                        attrs="{'invisible': ['|', ('is_end_state', '=', False), ('is_time_up','=', True)]}" 
                         groups="ets_cds.group_cds_controller_request"
                         >
                         <field name="action_state" />
@@ -141,7 +167,7 @@
                         groups="ets_cds.group_cds_controller_request"
                         >
                         <field name="action_state" />
-                    </div>
+                    </div> -->
                     
                     <div class="oe_title">
                         <h3>

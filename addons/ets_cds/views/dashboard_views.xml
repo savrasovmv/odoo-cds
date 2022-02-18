@@ -21,15 +21,16 @@
                             <div class="oe_kanban_content">
                                 <div class="o_kanban_record_title">
                                     <strong>
-                                        №
-                                        <field name="name" /> 
-                                        от 
-                                        <field name="date" />  
+                                    <field name="energy_complex_id" />
                                     </strong>
+                                    <field name="object_id" />
+                                    
                                 </div>
                                 <div class="o_kanban_record_subtitle">
-                                    <field name="energy_complex_id" />
-                                    <field name="object_id" />
+                                    №
+                                        <field name="name" /> 
+                                        от 
+                                        <field name="date" />
                                 </div>
 
                                 <!-- <div class="o_row o_primary font-weight-bold">

@@ -102,7 +102,8 @@ class CdsRequest(models.Model):
     
     @api.model
     def _expand_groups(self, states, domain, order):
-        return ['draft', 'matching_in', 'matching_out', 'agreed', 'open', 'extend', 'failure', 'close', 'cancel']
+        return ['matching_in', 'matching_out', 'agreed', 'open', 'extend']
+        # return ['draft', 'matching_in', 'matching_out', 'agreed', 'open', 'extend', 'failure', 'close', 'cancel']
 
 
     @api.model
@@ -157,7 +158,8 @@ class CdsRequest(models.Model):
         for record in self:
             record.is_time_up = False
             if record.date_work_end:
-                if (record.date_work_end < datetime.now() and record.state=="open" and record.date_turn_on == False) or (record.date_turn_on != False and record.date_work_end<record.date_turn_on):
+                if (record.date_work_end < datetime.now() and record.state=="open" and record.date_turn_on == False) or (record.date_extend < datetime.now() and record.state=="extend" and record.date_turn_on == False):
+                    # (record.date_turn_on != False and record.date_work_end<record.date_turn_on)
                     record.is_time_up = True
 
     @api.depends('date_work_end', 'date_extend')
@@ -182,22 +184,27 @@ class CdsRequest(models.Model):
         """Проверка даты окончания (должна быть больше чем время начала)"""
 
         for record in self:
-            if record.date_work_end < record.date_work_start:
-                raise ValidationError(_("Дата окончания должна быть больше чем дата начала"))
-            if record.is_extend and record.date_extend < record.date_work_end:
-                raise ValidationError(_("Дата продления должна быть больше чем дата окончания по плану"))
-            if record.date_turn_off > record.date_turn_on and record.date_turn_off and record.date_turn_on:
-                raise ValidationError(_("Дата включения не может быть меньше даты выключения"))
-                
+            if record.date_work_end and record.date_work_start:
+                if record.date_work_end < record.date_work_start:
+                    raise ValidationError(_("Дата окончания должна быть больше чем дата начала"))
+            if record.date_extend and record.date_work_end:
+                if record.is_extend and record.date_extend < record.date_work_end:
+                    raise ValidationError(_("Дата продления должна быть больше чем дата окончания по плану"))
+            if record.date_turn_off and record.date_turn_on:
+                if record.date_turn_off > record.date_turn_on and record.date_turn_off and record.date_turn_on:
+                    raise ValidationError(_("Дата включения не может быть меньше даты выключения"))
+                    
 
 
     def _get_color(self):
         """Подсветка состояния заявки"""
 
         for record in self:
-            record.color = 0
+            record.color = 4
             if record.is_end_state:
                 record.color = 10
+            if record.is_time_up:
+                record.color = 3
 
 
 
@@ -332,30 +339,30 @@ class CdsRequest(models.Model):
                 line.sudo().date_state = datetime.now()
 
 
-    def create_activities(self):
-        request_is_notify_time_off = self.env['ir.config_parameter'].sudo().get_param('request_is_notify_time_off')
-        request_dispetcher_user_id = self.env['ir.config_parameter'].sudo().get_param('request_dispetcher_user_id')
+    # def create_activities(self):
+    #     request_is_notify_time_off = self.env['ir.config_parameter'].sudo().get_param('request_is_notify_time_off')
+    #     request_dispetcher_user_id = self.env['ir.config_parameter'].sudo().get_param('request_dispetcher_user_id')
 
-        if request_is_notify_time_off and request_dispetcher_user_id!='':
-            # dispetcher_user_id = self.env['res.users'].browse(int(request_dispetcher_user_id))
-            # model_id = self.env['ir.model']._get(self._name).id
-            activity_type_id = self.env.ref("ets_cds.mail_activity_data_cds_request_finish", raise_if_not_found=False)
-            if not activity_type_id:
-                return False
-            # activities = self.env['mail.activity']
-            for record in self:
-                create_vals = {
-                    'activity_type_id': activity_type_id and activity_type_id.id,
-                    'summary': activity_type_id.summary,
-                    'automated': True,
-                    'note': activity_type_id.default_description,
-                    # 'date_deadline': date_deadline,
-                    'res_model_id': activity_type_id.res_model_id.id,
-                    'res_id': record.id,
-                    'user_id': int(request_dispetcher_user_id)
-                }
+    #     if request_is_notify_time_off and request_dispetcher_user_id!='':
+    #         # dispetcher_user_id = self.env['res.users'].browse(int(request_dispetcher_user_id))
+    #         # model_id = self.env['ir.model']._get(self._name).id
+    #         activity_type_id = self.env.ref("ets_cds.mail_activity_data_cds_request_finish", raise_if_not_found=False)
+    #         if not activity_type_id:
+    #             return False
+    #         # activities = self.env['mail.activity']
+    #         for record in self:
+    #             create_vals = {
+    #                 'activity_type_id': activity_type_id and activity_type_id.id,
+    #                 'summary': activity_type_id.summary,
+    #                 'automated': True,
+    #                 'note': activity_type_id.default_description,
+    #                 # 'date_deadline': date_deadline,
+    #                 'res_model_id': activity_type_id.res_model_id.id,
+    #                 'res_id': record.id,
+    #                 'user_id': int(request_dispetcher_user_id)
+    #             }
                 
-                self.env['mail.activity'].with_context({'mail_activity_quick_update': True}).create(create_vals)
+    #             self.env['mail.activity'].with_context({'mail_activity_quick_update': True}).create(create_vals)
 
     def send_notify_time_off(self):
         """Отправить уведомление о необходимости проверить ход работ.
@@ -536,7 +543,7 @@ class CdsRequest(models.Model):
         for record in self:
             record.state = 'open'
             record.date_turn_off = datetime.now()
-            record.create_activities()
+            # record.create_activities()
     
     def action_extend_work(self):
         """ Действие Продлить выполнения работ.
@@ -567,7 +574,6 @@ class CdsRequest(models.Model):
             Отправляет уведомление исполнителю о согласовании заявки
             
             """
-        print("+++++++action_end_matching")
         for record in self:
             record.state = 'agreed'
             body = """
@@ -579,8 +585,6 @@ class CdsRequest(models.Model):
             """  % (record.name, record.date, record.object_id.name, record.date_work_start or '')
 
             m = record.message_post(body=body, partner_ids=[record.partner_id.id])
-            print("+++++++m", m)
-            
     
 
 
@@ -603,9 +607,6 @@ class CdsRequest(models.Model):
 
         template = self.env.ref('ets_cds.mail_template_request_local_matching')
 
-        request_is_local_customer_agrees_last = self.env['ir.config_parameter'].sudo().get_param('request_is_local_customer_agrees_last')
-
-        
         for record in self:
             partner_ids = []
             for line in record.matching_ids:
