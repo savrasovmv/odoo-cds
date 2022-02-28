@@ -700,7 +700,11 @@ class CdsRequestMatching(models.Model):
                 if record.partner_id.parent_id.is_company:
                     if record.partner_id.parent_id.id == record.env.company.id:
                         record.is_local = True
-                        record.name = record.partner_id.name + ", " + record.partner_id.function or ""
+                        record.name = record.partner_id.name
+                        if record.partner_id.function:
+                            record.name += ", " + record.partner_id.function
+
+
                     else:
                         record.is_local = False
                         record.name = record.partner_id.name
