@@ -347,6 +347,7 @@
                 <field name="partner_id"/>
                 <separator/>
                 <filter name="completed" string="Completed" domain="[('state', '=', 'done')]"/>
+                <!-- <filter string="В работе" name="is_work" icon="terp-personal" domain="[('state','in',['draft', 'matching_in', 'matching_out' ])]" /> -->
                 <group expand="0" string="Группировать по">
                     <filter name="group_by_company_partner_id" string="Заказчику" domain="[]" context="{'group_by': 'company_partner_id'}"/>
                     <filter name="group_by_energy_complex_id" string="Энергокомплексу" domain="[]" context="{'group_by': 'energy_complex_id'}"/>

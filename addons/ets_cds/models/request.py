@@ -88,13 +88,13 @@ class CdsRequest(models.Model):
 
     matching_ids = fields.One2many('cds.request_matching', 'request_id', string=u"Строки Согласующие")
 
-    is_action_state = fields.Boolean(string='Действия для пользователя', compute="_get_action_state_user", help="Признак тредуется ли действие от пользователя на текущем статусе заявки, True - действие требуется, False - действий не требуется")
+    is_action_state = fields.Boolean(string='Действия для пользователя', compute_sudo=True, compute="_get_action_state_user", help="Признак тредуется ли действие от пользователя на текущем статусе заявки, True - действие требуется, False - действий не требуется")
 
-    action_state = fields.Char(string='Состояние', compute="_get_action_state", help="Текстовое описание состояния в текущем статусе")
-    is_end_state = fields.Boolean(string='Этап выполнен?', compute="_get_action_state", store=True, help="Если истина, то этап завершен и требуется дальнейшее действие")
-    is_time_up = fields.Boolean(string='Время истекло?', compute="_get_time_up", help="Если истина, то текущее время больше чем Дата окончания работ")
+    action_state = fields.Char(string='Состояние', compute_sudo=True, compute="_get_action_state", help="Текстовое описание состояния в текущем статусе")
+    is_end_state = fields.Boolean(string='Этап выполнен?', compute_sudo=True, compute="_get_action_state", store=True, help="Если истина, то этап завершен и требуется дальнейшее действие")
+    is_time_up = fields.Boolean(string='Время истекло?', compute_sudo=True, compute="_get_time_up", help="Если истина, то текущее время больше чем Дата окончания работ")
 
-    color = fields.Integer('Цвет', default=0, compute="_get_color")
+    color = fields.Integer('Цвет', default=0, compute_sudo=True, compute="_get_color")
 
     is_notify_time_off = fields.Boolean('Уведомление об уточнении статуса заявки, отправлено?')
     date_notify_time_off = fields.Datetime('Во сколько уведомить о проверке статуса заявки', compute="_get_date_notify_time_off", store=True)
@@ -102,7 +102,7 @@ class CdsRequest(models.Model):
     
     @api.model
     def _expand_groups(self, states, domain, order):
-        return ['matching_in', 'matching_out', 'agreed', 'open', 'extend']
+        return ['draft', 'matching_in', 'matching_out', 'agreed', 'open', 'extend']
         # return ['draft', 'matching_in', 'matching_out', 'agreed', 'open', 'extend', 'failure', 'close', 'cancel']
 
 
@@ -157,10 +157,14 @@ class CdsRequest(models.Model):
         """Расчет закончилось ли время выполнения заявки"""
         for record in self:
             record.is_time_up = False
-            if record.date_work_end:
-                if (record.date_work_end < datetime.now() and record.state=="open" and record.date_turn_on == False) or (record.date_extend < datetime.now() and record.state=="extend" and record.date_turn_on == False):
+            if record.date_work_end and not record.date_turn_on:
+                if (record.date_work_end < datetime.now() and record.state=="open"):
                     # (record.date_turn_on != False and record.date_work_end<record.date_turn_on)
                     record.is_time_up = True
+            if record.date_extend and not record.date_turn_on:
+                if record.date_extend < datetime.now() and record.state=="extend":
+                    record.is_time_up = True
+                        
 
     @api.depends('date_work_end', 'date_extend')
     def _get_date_notify_time_off(self):
@@ -174,7 +178,8 @@ class CdsRequest(models.Model):
             if record.is_extend and record.date_extend:
                 record.date_notify_time_off = record.date_extend - timedelta(hours=hour)
             else:
-                record.date_notify_time_off = record.date_work_end - timedelta(hours=hour)
+                if record.date_work_end:
+                    record.date_notify_time_off = record.date_work_end - timedelta(hours=hour)
             record.is_notify_time_off = False
 
 
@@ -574,17 +579,15 @@ class CdsRequest(models.Model):
             Отправляет уведомление исполнителю о согласовании заявки
             
             """
+        template = self.env.ref('ets_cds.mail_template_request_end_matching_agree')
+        
         for record in self:
             record.state = 'agreed'
-            body = """
-                    Заявка №%s от %s <b>согласована</b>. <br/> 
-                    Объект %s <br/> 
-                    Дата начала работ: %s <br/>
-                    <br/>
-                    
-            """  % (record.name, record.date, record.object_id.name, record.date_work_start or '')
-
-            m = record.message_post(body=body, partner_ids=[record.partner_id.id])
+            record.message_post_with_template(
+                    template.id, composition_mode='comment',
+                    model='cds.request', res_id=record.id,
+                    partner_ids=[record.partner_id.id],
+                )
     
 
 
@@ -614,6 +617,7 @@ class CdsRequest(models.Model):
                     partner_ids.append(line.partner_id.id)
                 
             if len(partner_ids)>0:
+                # timezone = self.env.user.tz
                 record.message_post_with_template(
                     template.id, composition_mode='comment',
                     model='cds.request', res_id=record.id,

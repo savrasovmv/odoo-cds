@@ -4,11 +4,15 @@
         <field name="name">cds.request.kanban</field>
         <field name="model">cds.request</field>
         
+        
         <field name="arch" type="xml">
             <kanban class="o_kanban_mobile o_kanban_small_column" 
                     create="0" 
                     default_group_by="state"
+                    records_draggable="false"
                      >
+                     <!-- group_create="False" 
+                    records_draggable="False" -->
                 <field name="name" />
                 <field name="energy_complex_id" />
                 <field name="object_id" />
@@ -50,11 +54,16 @@
         </field>
     </record>
 
+    
+
     <record id="cds_dashboard_action" model="ir.actions.act_window">
         <field name="name">Панель управления</field>
         <field name="res_model">cds.request</field>
-        <field name="domain">[]</field>
+        <field name="domain">[('state','in',['draft', 'matching_in', 'matching_out', 'agreed', 'open', 'extend'])]</field>
+        <!-- <field name="domain">[('state','in',['draft', 'matching_in', 'matching_out' ])]</field> -->
+
         <field name="view_mode">kanban,tree,form</field>
+        <!-- <field name="context">{'search_default_is_work': 1}</field> -->
         <field name="help" type="html">
           <p>
              Создайте новую запись
