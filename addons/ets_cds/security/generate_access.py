@@ -43,6 +43,26 @@ for name in spisok:
 
 
 
+#  group_cds_matching Может редактировать свою запись в таблице согласования
+group_name = 'group_cds_matching'
+spisok = []
+spisok.append(['cds.request_matching', '1,1,0,0'])
+
+for name in spisok:
+	class_name = name[0].replace('.','_')
+	modul_name = ''
+	
+	if len(name)>1:
+		access = name[1]
+	else:
+		access = '0,0,0,0'
+
+	print('access_%(class_name)s_%(group_name)s,%(name)s,%(modul_name)smodel_%(class_name)s,%(addon_name)s.%(group_name)s,%(access)s' % {'name':name[0], 'class_name': class_name, 'group_name': group_name, 'access': access, 'modul_name': modul_name, 'addon_name': addon_name})
+
+
+
+
+
 
 #  group_cds_executor Формирующий и подающий заявку работник.
 

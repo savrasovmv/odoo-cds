@@ -302,14 +302,32 @@
                                 </td>
                                 <td> 
                                     <span t-if="o.date_turn_off" t-esc="context_timestamp(o.date_turn_off).strftime('%d.%m.%Y %H:%M')"/>
+                                    <t t-if="o.is_extend">
+                                        продлена до
+                                        <span t-if="o.date_extend " t-esc="context_timestamp(o.date_extend).strftime('%d.%m.%Y %H:%M')"/>
+                                
+                                    </t>
                                 </td>
                             </tr>
+                           
                             <tr >
                                 <td class="td-50"> 
                                     Включение (дата, время):
                                 </td>
                                 <td> 
                                     <span t-if="o.date_turn_on" t-esc="context_timestamp(o.date_turn_on).strftime('%d.%m.%Y %H:%M')"/>
+                                </td>
+                            </tr>
+                            <tr >
+                                <td class="td-50" colspan="2"> 
+                                    <b>Комментарии:</b>
+                                </td>
+                                
+                            </tr>
+                            <tr >
+                                <td class="td-50" colspan="2"> 
+                                    <span t-field="o.description_partner"/>
+
                                 </td>
                             </tr>
 

@@ -79,8 +79,8 @@ class CdsRequest(models.Model):
     date_turn_off = fields.Datetime(string='Отключение', copy=False)
     date_turn_on = fields.Datetime(string='Включение', copy=False)
 
-    description_partner = fields.Text("Комментарий для заказчика")
-    description = fields.Text("Комментарии к заявке")
+    description_partner = fields.Text("Комментарии к заявке", compute_sudo=True, compute="_get_description_partner", store=True)
+    description = fields.Text("Комментарий исполнителя")
 
     attachment_ids = fields.Many2many('ir.attachment', 'cds_request_ir_attachments_rel',
         'request_id', 'attachment_id', string='Вложения')
@@ -92,6 +92,8 @@ class CdsRequest(models.Model):
 
     action_state = fields.Char(string='Состояние', compute_sudo=True, compute="_get_action_state", help="Текстовое описание состояния в текущем статусе")
     is_end_state = fields.Boolean(string='Этап выполнен?', compute_sudo=True, compute="_get_action_state", store=True, help="Если истина, то этап завершен и требуется дальнейшее действие")
+    is_state_agreed = fields.Boolean(string='Этап согласован?', compute_sudo=True, compute="_get_action_state", store=True, help="Если истина, то все согласующие согласовали")
+    
     is_time_up = fields.Boolean(string='Время истекло?', compute_sudo=True, compute="_get_time_up", help="Если истина, то текущее время больше чем Дата окончания работ")
 
     color = fields.Integer('Цвет', default=0, compute_sudo=True, compute="_get_color")
@@ -137,6 +139,19 @@ class CdsRequest(models.Model):
             })
 
 
+    @api.depends('matching_ids.description', 'description')
+    def _get_description_partner(self):
+
+        for record in self:
+            record.description_partner = record.partner_id.print_name + ": " + record.description + "\n"
+            for line in record.matching_ids:
+                if line.description:
+                    record.description_partner += line.partner_id.print_name + ": " + line.description + "\n"
+
+                           
+    
+
+
     def random_value(self):
         from random import randint
         value = randint(10, 40)
@@ -164,7 +179,7 @@ class CdsRequest(models.Model):
             if record.date_extend and not record.date_turn_on:
                 if record.date_extend < datetime.now() and record.state=="extend":
                     record.is_time_up = True
-                        
+
 
     @api.depends('date_work_end', 'date_extend')
     def _get_date_notify_time_off(self):
@@ -208,7 +223,7 @@ class CdsRequest(models.Model):
             record.color = 4
             if record.is_end_state:
                 record.color = 10
-            if record.is_time_up:
+            if record.is_time_up or not record.is_state_agreed:
                 record.color = 3
 
 
@@ -221,6 +236,7 @@ class CdsRequest(models.Model):
         for self in records:
             self.action_state = self.state
             self.is_end_state = False
+            self.is_state_agreed = True
 
             if self.state == 'draft':
                 self.action_state = "Черновик. Нажмите Начать, что бы зпустить процесс согласования"
@@ -239,6 +255,7 @@ class CdsRequest(models.Model):
                 else:
                     self.action_state = "Внутреннее согласование завершено. Необходимо перейти к следующему этапу"
                     self.is_end_state = True
+                    
             
             if self.state == 'matching_out':
                 count = self.env['cds.request_matching'].search_count([
@@ -254,6 +271,18 @@ class CdsRequest(models.Model):
                 else:
                     self.action_state = "Согласование с заказчиком завершено. Необходимо перейти к следующему этапу"
                     self.is_end_state = True
+
+            if self.state == 'matching_in' or self.state == 'matching_out':    
+                matching_failure = self.env['cds.request_matching'].search([
+                    ('request_id', '=', self.id),
+                    ('is_local', '=', True),
+                    ('user_id', '!=', False),
+                    ('state', '=', 'failure'),
+                ])
+                if len(matching_failure)>0:
+                    self.is_state_agreed = False
+                    self.action_state = "Не согласовано от %s пользователей: %s" % (len(matching_failure), matching_failure.mapped('partner_id.name'))
+                    self.is_end_state = False
 
             if self.state == 'agreed':
                 self.action_state = "Заявка согласована. Ожидания начала работ"
@@ -319,29 +348,88 @@ class CdsRequest(models.Model):
     def action_user_agreed(self):
         """Действие Согласованно в форме заявки"""
 
+        self.ensure_one()
+
         user = self.env.user
         partner_id = user.partner_id
 
-        for record in self:
-            for line in record.matching_ids:
-                if line.partner_id == partner_id:
-                    # line.sudo().user_id = user.id
-                    line.sudo().state = 'agreed'
-                    # line.sudo().date_state = datetime.now()
+        try:
+            form_view_id = self.env.ref("ets_cds.cds_request_matching_user_view_form").id
+        except Exception as e:
+            form_view_id = False
+
+        line_matching = self.matching_ids.search([
+            ('partner_id', '=', partner_id.id),
+            ('request_id', '=', self.id),
+        ], limit=1)
+
+        line_matching.state = 'agreed'
+        return {
+            'type': 'ir.actions.act_window',
+            'name': 'Согласующий заявку',
+            'view_type': 'form',
+            'view_mode': 'form',
+            'res_model': 'cds.request_matching',
+            'views': [(form_view_id, 'form')],
+            'target': 'current',
+            'res_id': line_matching.id,
+            'context': {
+                'form_view_initial_mode': 'edit', 
+                'force_detailed_view': 'true',
+                },
+        }
+
+        # for record in self:
+        #     for line in record.matching_ids:
+        #         if line.partner_id == partner_id:
+        #             # line.sudo().user_id = user.id
+        #             line.sudo().state = 'agreed'
+        #             # line.sudo().date_state = datetime.now()
     
 
 
     def action_user_failure(self):
         """Действие Отказать в согласование в форме заявки"""
+
         self.ensure_one()
+
         user = self.env.user
         partner_id = user.partner_id
 
-        for line in self.matching_ids:
-            if line.partner_id == partner_id:
-                line.sudo().user_id = user.id
-                line.sudo().state = 'failure'
-                line.sudo().date_state = datetime.now()
+        try:
+            form_view_id = self.env.ref("ets_cds.cds_request_matching_user_view_form").id
+        except Exception as e:
+            form_view_id = False
+
+        line_matching = self.matching_ids.search([
+            ('partner_id', '=', partner_id.id),
+            ('request_id', '=', self.id),
+        ], limit=1)
+
+        line_matching.state = 'failure'
+        return {
+            'type': 'ir.actions.act_window',
+            'name': 'Согласующий заявку',
+            'view_type': 'form',
+            'view_mode': 'form',
+            'res_model': 'cds.request_matching',
+            'views': [(form_view_id, 'form')],
+            'target': 'current',
+            'res_id': line_matching.id,
+            'context': {
+                'form_view_initial_mode': 'edit', 
+                'force_detailed_view': 'true',
+                },
+        }
+        # self.ensure_one()
+        # user = self.env.user
+        # partner_id = user.partner_id
+
+        # for line in self.matching_ids:
+        #     if line.partner_id == partner_id:
+        #         line.sudo().user_id = user.id
+        #         line.sudo().state = 'failure'
+        #         line.sudo().date_state = datetime.now()
 
 
     # def create_activities(self):
@@ -690,6 +778,8 @@ class CdsRequestMatching(models.Model):
             ('email', 'По email'), 
         ], string="Метод согласования ", default='', copy=False
     )
+    description = fields.Text("Комментарии к заявке")
+
     request_id = fields.Many2one('cds.request', ondelete='cascade', string=u"Заявка", required=True)
 
 

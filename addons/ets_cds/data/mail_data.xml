@@ -9,7 +9,7 @@
             <field name="name">Заявки: рассылка согласования</field>
             <field name="model_id" ref="ets_cds.model_cds_request"/>
             <field name="subject">ЦДС Заявка ${object.name} от ${format_datetime(object.date, tz=object.partner_id.tz, dt_format="dd.MM.yyyy HH:mm")}  ${object.energy_complex_id.name} </field>
-            <field name="email_from">ЦДС ${object.company_id.email}</field>
+            <field name="email_from">"ЦДС" &lt;${object.company_id.email}&gt;</field>
             <!-- <field name="partner_to" >${partner_ids}</field> -->
             <!-- <field name="email_to" >${email_to}</field> -->
             <!-- <field name="report_template" ref="action_print_request"/> -->
@@ -25,15 +25,23 @@
     <h4 style="Margin:20px 10px 10px 10px;font-family: Arial;">Здравствуйте!</h4>
     
     <p style="Margin:10px 10px 10px 10px;line-height: 28px; font-size: 14px; font-family: Arial;">
-        Послупила Заявка ${object.name} от ${r_date} по энергокомплексу ${object.energy_complex_id.name}<br/>
-        Объект:  ${object.object_id.name}<br/>
-        Местонахождение:  ${object.location_id.name}<br/>
-        Вид работ:  ${object.get_mode_value()}<br/>
+        Заявка №${object.name} от ${r_date} на отключение (включение) оборудования <br/><br/>
+        Местонахождение:  ${object.location_id.name or ""}<br/>
+        Энергокомплекс: ${object.energy_complex_id.name or ""}<br/>
+        Объект:  ${object.object_id.name or ""}<br/>
+        Вид работ:  ${object.get_mode_value() or ""}<br/>
+        Наименование работ:  ${object.work_name or ""}<br/>
+        Дата по графику:  ${object.date_schedule or ""}<br/>
+        Аварийная готовность:  ${object.ready_hours} ч. ${object.ready_minutes} мин.<br/><br/>
+        Начало работ:  ${date_work_start or ""}<br/>
+        Окончание работ:  ${date_work_end or ""}<br/><br/>
+        Режимные указания:  ${object.description_mode or ""}<br/>
+        Общая нагрузка ГПЭС:  ${object.total_load_gpes or ""}<br/>
+        Ограничения:  ${object.restrictions or ""}<br/>
+        Потери нефти:  ${object.oil_losses or ""}<br/>
+        Комментарии:  ${object.description or ""}<br/><br/>
 
-        Наименование работ:  ${object.work_name}<br/>
-        Начало работ:  ${date_work_start}<br/>
-        Окончание работ:  ${date_work_end}<br/>
-        Часовой пояс: ${object.partner_id.tz}<br/>
+        Часовой пояс: ${object.partner_id.tz or ""}<br/>
         Ответственный:  ${object.partner_id.name} ${object.function or ""}<br/>
         Контакты:  ${object.partner_id.mobile or ""} ${object.partner_id.email or ""}<br/>
 

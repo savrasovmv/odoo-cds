@@ -46,7 +46,7 @@
                             string="Начать согласование с заказчиком" 
                             class="btn-primary"
                             type="object" 
-                            attrs="{'invisible': ['|', ('is_end_state', '=', False), ('state', '!=', 'matching_in')]}"
+                            attrs="{'invisible': [('is_state_agreed', '=', False),'|', ('is_end_state', '=', False), ('state', '!=', 'matching_in')]}"
                             groups="ets_cds.group_cds_dispetcher"
                             />
 
@@ -63,9 +63,10 @@
                             name="action_end_matching_failure" 
                             string="Не согласованно" 
                             type="object" 
-                            attrs="{'invisible': ['|', '&amp;', ('state', '=', 'matching_out'),('is_end_state', '=', False), ('state', '!=', 'matching_out') ]}"
+                            attrs="{'invisible': [('is_state_agreed', '=', True),'|', ('state', '!=', 'matching_in'), ('state', '!=', 'matching_out')]}"
                             groups="ets_cds.group_cds_controller_request"
                             />
+                            <!-- attrs="{'invisible': ['|', '&amp;', ('state', '=', 'matching_out'),('is_end_state', '=', False), ('state', '!=', 'matching_out') ]}" -->
 
                     <button 
                             name="action_start_work" 
@@ -246,8 +247,10 @@
                             </group>
 
                             <group string="Комментарии">
+                                <!-- <div class="oe_edit_only"> -->
+                                    <field name="description" class="oe_edit_only"/>
+                                <!-- </div> -->
                                 <field name="description_partner" />
-                                <field name="description"/>
                             </group>
                             
                         </page>
@@ -298,6 +301,7 @@
                             <group>
                                 <field name="is_action_state"/>
                                 <field name="is_end_state" />
+                                <field name="is_state_agreed" />
                                 <field name="is_time_up" />
                                 <field name="color" />
                                 <field name="is_notify_time_off"/>
@@ -416,6 +420,50 @@
                         <field name="date_state"/>
                         <field name="is_send"/>
                         <field name="is_action_state" invisible="1"/>
+                        <field name="description"/>
+
+                    </group>
+                            
+                        
+                    
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+
+
+    <record id="cds_request_matching_user_view_form" model="ir.ui.view">
+        <field name="name">cds.request_matching.form</field>
+        <field name="model">cds.request_matching</field>
+        <field name="arch" type="xml">
+            <form string="Согласование заявки">
+                <header>
+                    <button 
+                            name="action_user_agreed" 
+                            string="Согласовано" 
+                            type="object" 
+                            class="btn-success"
+                            attrs="{'invisible': [('is_action_state', '!=', True)]}"
+                            />
+                    <button 
+                            name="action_user_failure" 
+                            string="Отказать" 
+                            type="object" 
+                            class="btn-danger"
+                            attrs="{'invisible': [('is_action_state', '!=', True)]}"
+                            />
+                </header>
+                <sheet>
+                    
+                    <group>
+                        <field name="partner_id" attrs="{'readonly': True}"/>
+                        <field name="function" attrs="{'readonly': True}"/>
+                        <field name="state" options="{'reload_on_button': true}" attrs="{'readonly': True}"/>
+                        <field name="date_state" attrs="{'readonly': True}"/>
+                        <field name="is_action_state" invisible="1"/>
+                        <field name="description"/>
+
                     </group>
                             
                         
