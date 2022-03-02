@@ -13,7 +13,7 @@
         <tr>
             <th valign="bottom" style="text-align:left;">
                 <font color="white" style="color:#FFFFF;font-size: 28px; font-family: Calibri, Arial;">
-                    ЦДС
+                    Управление заявками ЦДС
                 </font>
             </th>
 
@@ -78,7 +78,7 @@
 <!-- FOOTER -->
 
 <p style="line-height:16px;font-size:12px;">
-Отправлено из системы "Центральная Диспетчерская Служба" <br/>
+Отправлено из системы "Управление заявками ЦДС" <br/>
 <t t-esc="company.name"/> <br/>
 </p>
 
@@ -107,7 +107,7 @@
         <tr>
             <th valign="bottom" style="text-align:left;">
                 <font color="white" style="color:#FFFFF;font-size: 28px; font-family: Calibri, Arial;">
-                    ЦДС
+                    Управление заявками ЦДС
                 </font>
             </th>
 

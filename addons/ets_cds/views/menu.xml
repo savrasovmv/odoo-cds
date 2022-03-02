@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <odoo>
 
-    <menuitem id="menu_cds_root" name="Диспетчерская служба"  action="cds_dashboard_action" />
+    <menuitem id="menu_cds_root" name="Управление заявками ЦДС"  action="cds_dashboard_action" sequence="0"/>
 
         <menuitem id="cds_request_menu_action" parent="menu_cds_root" action="cds_request_action" sequence="10" />
 

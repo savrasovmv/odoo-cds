@@ -8,7 +8,7 @@ from datetime import datetime, timedelta
 
 
 class CdsRequest(models.Model):
-    """Заявки Диспетчерской службы"""
+    """Заявки Управление заявками ЦДС"""
 
     _name = "cds.request"
     _description = "Заявки"
@@ -751,7 +751,7 @@ class CdsRequest(models.Model):
 
 
 class CdsRequestMatching(models.Model):
-    """Согласующие в Заявке Диспетчерской службы"""
+    """Согласующие в Заявке Управление заявками ЦДС"""
 
     _name = "cds.request_matching"
     _description = "Согласующие"
