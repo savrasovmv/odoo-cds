@@ -275,7 +275,6 @@ class CdsRequest(models.Model):
             if self.state == 'matching_in' or self.state == 'matching_out':    
                 matching_failure = self.env['cds.request_matching'].search([
                     ('request_id', '=', self.id),
-                    ('is_local', '=', True),
                     ('user_id', '!=', False),
                     ('state', '=', 'failure'),
                 ])

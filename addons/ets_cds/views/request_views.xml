@@ -46,7 +46,7 @@
                             string="Начать согласование с заказчиком" 
                             class="btn-primary"
                             type="object" 
-                            attrs="{'invisible': [('is_state_agreed', '=', False),'|', ('is_end_state', '=', False), ('state', '!=', 'matching_in')]}"
+                            attrs="{'invisible': ['|', '|', ('is_state_agreed', '=', False), ('is_end_state', '=', False), ('state', '!=', 'matching_in')]}"
                             groups="ets_cds.group_cds_dispetcher"
                             />
 
@@ -55,7 +55,7 @@
                             string="Согласование завершено" 
                             class="btn-primary"
                             type="object" 
-                            attrs="{'invisible': ['|', '&amp;', ('state', '=', 'matching_out'),('is_end_state', '=', False), ('state', '!=', 'matching_out') ]}"
+                            attrs="{'invisible': ['|', ('is_state_agreed', '=', False),'|', '&amp;', ('state', '=', 'matching_out'),('is_end_state', '=', False), ('state', '!=', 'matching_out') ]}"
                             groups="ets_cds.group_cds_controller_request"
                             />
 
